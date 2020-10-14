@@ -4,6 +4,28 @@
 #include "C.tab.h"
 #include <string.h>
 
+/*void traverse_tree(NODE *tree) {
+    switch (tree->type) {
+        default: return "???";
+        case LEAF:;
+        case IDENTIFIER:;
+        case CONSTANT, STRING_LITERAL:;
+        case APPLY:;
+        case VOID,FUNCTION,INT:;
+        case d:;
+        case D:;
+        case F:;
+        case CONTINUE,BREAK:;
+        case RETURN:;
+        case "~":;
+        case ";":;
+        case "=":;
+        case '+','-','*','/','%','>','<',NE_OP,EQ_OP,LE_OP,GE_OP:;
+        case IF:;
+        case WHILE:;
+    }
+}*/
+
 char *named(int t)
 {
     static char b[100];
@@ -69,10 +91,12 @@ void print_tree0(NODE *tree, int level)
     int i;
     if (tree==NULL) return;
     if (tree->type==LEAF) {
+        printf("%d", tree->type);
       print_leaf(tree->left, level);
     }
     else {
       for(i=0; i<level; i++) putchar(' ');
+      printf("%d", tree->type);
       printf("%s\n", named(tree->type));
 /*       if (tree->type=='~') { */
 /*         for(i=0; i<level+2; i++) putchar(' '); */
