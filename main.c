@@ -12,24 +12,30 @@ typedef struct value {
     char * string ;
   } v;
 } VALUE ;
-/*, ENV* env*/
+
+VALUE* read_int() {
+  int x; 
+  x = 5;
+  return ( VALUE *) x;
+}
     
-void interpret(NODE *term) {
+VALUE* interpret(NODE *term) {
+  VALUE result;
+
   switch(term->type) {
     case LEAF:
       //Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
-      interpret(term->left);
+      return (VALUE *)interpret(term->left); 
       break;
     case IDENTIFIER:
-      printf("welcome brothas this is an identifier \n\n");
       break;
     case CONSTANT: case STRING_LITERAL:
-      printf("welcome brothas this is a string literal  \n\n");
+      //create VALUE for constant and string that gets returned NO MORE ITERATION FROM THIS POINT
+      return read_int(); 
       break;
     case APPLY:
       break;
     case VOID: case FUNCTION: case INT:
-      printf("welcome brothas this is an int   \n\n");
       break;
     case 'd':
       //AST for Return type
@@ -40,20 +46,32 @@ void interpret(NODE *term) {
     case 'D': 
       //Function definition
       interpret(term->left);
-      //Return value
-      interpret(term->right);
+      //Return value 
+      if(term->right != NULL) {
+        return interpret(term->right);
+      } else {
+        return (VALUE *) 0;
+      }
       break;
     case 'F':
       //Name of function
       interpret(term->left);
-      //Arguments of function *** HAVE TO TEST IF EMPTY ***
-      //interpret(term->right);
+      //Arguments of function 
+      if(term->right != NULL) {
+        interpret(term->right);
+      }
       break;
     case CONTINUE: case BREAK:
       break;
     case RETURN:
+      // TODO: RETURN THE VALUE HERE  DONT FORGET
       //Left child is an AST of the expression whose value is to be returned
-      interpret(term->left);
+      if(term->left != NULL) {
+        return (VALUE *)interpret(term->left); 
+      } else{
+        // TODO: throw an error
+        printf("Error no return type\n");
+      }
       break;
     case '~':
       break;
@@ -62,7 +80,14 @@ void interpret(NODE *term) {
     case '=':
       break;
     case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
-      break; 
+      // TODO: make another c file with methods handling this cases
+      //operations return
+      //should i dissalocate the memory or no?
+      // TODO: check if left type matches right type
+      result.type = interpret(term->left)->type;
+      result.v.integer = interpret(term->left)->v.integer + interpret(term->right)->v.integer; 
+      return (VALUE*) &result;
+      break;
     case IF:
       break;
     case WHILE:
@@ -137,12 +162,10 @@ void print_tree0(NODE *tree, int level)
     int i;
     if (tree==NULL) return;
     if (tree->type==LEAF) {
-        printf("%d", tree->type);
       print_leaf(tree->left, level);
     }
     else {
       for(i=0; i<level; i++) putchar(' ');
-      printf("%d", tree->type);
       printf("%s\n", named(tree->type));
 /*       if (tree->type=='~') { */
 /*         for(i=0; i<level+2; i++) putchar(' '); */
@@ -175,7 +198,8 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     tree = ans;
-    interpret(tree);
-    //interpret(tree);
+    int exit_code;
+    exit_code = interpret(tree);   
+    printf("\nTerminated with exit code '%d'\n",exit_code); 
     return 0;
 }
