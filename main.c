@@ -4,27 +4,73 @@
 #include "C.tab.h"
 #include <string.h>
 
-/*void traverse_tree(NODE *tree) {
-    switch (tree->type) {
-        default: return "???";
-        case LEAF:;
-        case IDENTIFIER:;
-        case CONSTANT, STRING_LITERAL:;
-        case APPLY:;
-        case VOID,FUNCTION,INT:;
-        case d:;
-        case D:;
-        case F:;
-        case CONTINUE,BREAK:;
-        case RETURN:;
-        case "~":;
-        case ";":;
-        case "=":;
-        case '+','-','*','/','%','>','<',NE_OP,EQ_OP,LE_OP,GE_OP:;
-        case IF:;
-        case WHILE:;
-    }
-}*/
+typedef struct value {
+  int type ;
+  union {
+    int integer ;
+    int boolean ; 
+    char * string ;
+  } v;
+} VALUE ;
+/*, ENV* env*/
+    
+void interpret(NODE *term) {
+  switch(term->type) {
+    case LEAF:
+      //Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
+      interpret(term->left);
+      break;
+    case IDENTIFIER:
+      printf("welcome brothas this is an identifier \n\n");
+      break;
+    case CONSTANT: case STRING_LITERAL:
+      printf("welcome brothas this is a string literal  \n\n");
+      break;
+    case APPLY:
+      break;
+    case VOID: case FUNCTION: case INT:
+      printf("welcome brothas this is an int   \n\n");
+      break;
+    case 'd':
+      //AST for Return type
+      interpret(term->left);
+      //Function definition
+      interpret(term->right);
+      break;
+    case 'D': 
+      //Function definition
+      interpret(term->left);
+      //Return value
+      interpret(term->right);
+      break;
+    case 'F':
+      //Name of function
+      interpret(term->left);
+      //Arguments of function *** HAVE TO TEST IF EMPTY ***
+      //interpret(term->right);
+      break;
+    case CONTINUE: case BREAK:
+      break;
+    case RETURN:
+      //Left child is an AST of the expression whose value is to be returned
+      interpret(term->left);
+      break;
+    case '~':
+      break;
+    case ';':
+      break;
+    case '=':
+      break;
+    case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
+      break; 
+    case IF:
+      break;
+    case WHILE:
+      break;
+    default:
+      break;
+  }
+}
 
 char *named(int t)
 {
@@ -128,5 +174,8 @@ int main(int argc, char** argv)
     tree = ans;
     printf("parse finished with %p\n", tree);
     print_tree(tree);
+    tree = ans;
+    interpret(tree);
+    //interpret(tree);
     return 0;
 }
