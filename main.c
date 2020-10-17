@@ -3,7 +3,6 @@
 #include "nodes.h"
 #include "C.tab.h"
 #include <string.h>
-
 typedef struct value {
   int type ;
   union {
@@ -12,6 +11,18 @@ typedef struct value {
     char * string ;
   } v;
 } VALUE ;
+
+typedef struct binding {
+  TOKEN *name ;
+  VALUE *val ;
+  struct binding *next ; 
+} BINDING ;
+
+typedef struct frame {
+BINDING *bindings ;
+struct frame *next ; 
+} FRAME ;
+
 
 VALUE* read_int() {
   int x; 
@@ -30,9 +41,11 @@ VALUE* interpret(NODE *term) {
     case IDENTIFIER:
       break;
     case CONSTANT: case STRING_LITERAL:
-      //create VALUE for constant and string that gets returned NO MORE ITERATION FROM THIS POINT
-      return read_int(); 
-      break;
+      {
+        TOKEN *t = (TOKEN *)term;
+        return t->value;
+        break;
+      }
     case APPLY:
       break;
     case VOID: case FUNCTION: case INT:
@@ -84,9 +97,8 @@ VALUE* interpret(NODE *term) {
       //operations return
       //should i dissalocate the memory or no?
       // TODO: check if left type matches right type
-      result.type = interpret(term->left)->type;
-      result.v.integer = interpret(term->left)->v.integer + interpret(term->right)->v.integer; 
-      return (VALUE*) &result;
+      printf("arrives here");
+      return (VALUE*) ((int)interpret(term->left) + (int)interpret(term->right));
       break;
     case IF:
       break;
