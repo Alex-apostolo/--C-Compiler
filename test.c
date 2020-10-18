@@ -1,8 +1,8 @@
 #include <stdio.h>
+#include "interpreter.h"
 int main() {
-  printf("why you such a bitch");
-  int x,b ; 
-  scanf(" %d " ,&x );
-  fflush(stdin);
-  scanf(" %d ",&b);
+  char* x;
+  fputc(92,stdin);
+  printf("%d",fgetc(stdin));
+  return 0;
 }
