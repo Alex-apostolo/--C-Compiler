@@ -1,0 +1,27 @@
+#! /bin/bash
+rm .tmp_solutions
+a=1
+printf "Start Testing at: "
+date
+printf "\n"
+while read line
+do 
+if [ "$line" != "%%" ] 
+then
+./../mycc <<< $line > /dev/null
+str="$a: Terminates with -> $?"
+echo $str
+echo $str >> .tmp_solutions
+
+a=$((a+1))
+fi
+done < tests.in
+printf "\nEND\n\n"
+
+diff .tmp_solutions solutions
+if [ $? = 0 ]
+    then 
+    printf "All tests passed successfully!!!\n\n"
+    else
+    printf "\nSome or all tests Failed ;(\n\n"
+fi
