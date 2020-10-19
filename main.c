@@ -109,5 +109,5 @@ int main(int argc, char** argv)
     int exit_code;
     exit_code = interpret(tree);   
     printf("\nTerminated with exit code '%d'\n",exit_code); 
-    return 0;
+    return exit_code;
 }

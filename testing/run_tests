@@ -1,5 +1,5 @@
 #! /bin/bash
-rm .tmp_solutions
+rm .tmp_solution
 a=1
 printf "Start Testing at: "
 date
@@ -11,14 +11,14 @@ then
 ./../mycc <<< $line > /dev/null
 str="$a: Terminates with -> $?"
 echo $str
-echo $str >> .tmp_solutions
+echo $str >> .tmp_solution
 
 a=$((a+1))
 fi
 done < tests.in
 printf "\nEND\n\n"
 
-diff .tmp_solutions solutions
+diff .tmp_solution solutions
 if [ $? = 0 ]
     then 
     printf "All tests passed successfully!!!\n\n"
