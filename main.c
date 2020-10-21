@@ -3,6 +3,7 @@
 #include "nodes.h"
 #include "C.tab.h"
 #include <string.h>
+#include "interpreter.h"
 
 char *named(int t)
 {
@@ -69,10 +70,12 @@ void print_tree0(NODE *tree, int level)
     int i;
     if (tree==NULL) return;
     if (tree->type==LEAF) {
+      //printf("%d", tree->type);
       print_leaf(tree->left, level);
     }
     else {
       for(i=0; i<level; i++) putchar(' ');
+      //printf("%d", tree->type);
       printf("%s\n", named(tree->type));
 /*       if (tree->type=='~') { */
 /*         for(i=0; i<level+2; i++) putchar(' '); */
@@ -96,7 +99,13 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
+    //Create first frame which is main
     NODE* tree;
+    FRAME main;
+    ENV env;
+    env.frames = &main;
+    ENV *penv = &env;
+    
     if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
     init_symbtable();
     printf("--C COMPILER\n");
@@ -104,5 +113,8 @@ int main(int argc, char** argv)
     tree = ans;
     printf("parse finished with %p\n", tree);
     print_tree(tree);
-    return 0;
+    tree = ans;
+    VALUE* exit_code = interpret(tree,penv);  
+    printf("\nTerminated with exit code '%d'\n",exit_code);
+    return exit_code;
 }

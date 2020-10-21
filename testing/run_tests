@@ -1,0 +1,32 @@
+#! /bin/bash
+readonly TMPSOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tmp_solutions
+readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions
+readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/tests.in
+readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
+
+rm $TMPSOLPATH
+a=1
+printf "Start Testing at: "
+date
+printf "\nSTART OF OUTPUT\n\n"
+while read line
+do 
+if [ "$line" != "%%" ] 
+then
+$MYCC <<< $line > /dev/null
+str="$a: Terminates with -> $?"
+echo $str
+echo $str >> $TMPSOLPATH
+
+a=$((a+1))
+fi
+done < $TESTSFILE
+printf "\nEND OF OUTPUT\n\n***DIFFERENCES***\n\n"
+
+diff $TMPSOLPATH $SOLPATH
+if [ $? = 0 ]
+    then 
+    printf "All tests passed successfully!!!\n\n"
+    else
+    printf "\nSome or all tests Failed ;(\n\n"
+fi
