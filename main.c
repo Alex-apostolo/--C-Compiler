@@ -115,12 +115,6 @@ int main(int argc, char** argv)
     print_tree(tree);
     tree = ans;
     VALUE* exit_code = interpret(tree,penv);  
-    if(exit_code != NULL) {
-      printf("\nTerminated with exit code '%d'\n",exit_code->v.integer); 
-      return exit_code->v.integer;
-    }else {
-      printf("\nTerminated with exit code 0\n");
-      return 0;
-    }
-    
+    printf("\nTerminated with exit code '%d'\n",exit_code);
+    return exit_code;
 }

@@ -8,7 +8,7 @@ rm $TMPSOLPATH
 a=1
 printf "Start Testing at: "
 date
-printf "\n"
+printf "\nSTART OF OUTPUT\n\n"
 while read line
 do 
 if [ "$line" != "%%" ] 
@@ -21,7 +21,7 @@ echo $str >> $TMPSOLPATH
 a=$((a+1))
 fi
 done < $TESTSFILE
-printf "\nEND\n\n"
+printf "\nEND OF OUTPUT\n\n***DIFFERENCES***\n\n"
 
 diff $TMPSOLPATH $SOLPATH
 if [ $? = 0 ]

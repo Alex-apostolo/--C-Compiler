@@ -1,6 +1,6 @@
 int main() {}
 %%
-int main() { return 0; }
+int main() { return 53; }
 %%
 int main() { return "hello"; }
 %%
@@ -10,5 +10,9 @@ int main() { return test(); }
 %%
 int main() { int x; int y; int z; return 15;}
 %%
-int main() { int x = 0; return x + 69;}
+int main() { int x = 67; return x;}
+%%
+int main() { int x = 53; return x+1;}
+%%
+int main() { int x = 1; x = x + 32; return x;}
 %%

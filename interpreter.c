@@ -11,36 +11,21 @@ VALUE* interpret(NODE *term, ENV *env) {
       return interpret(term->left,env); 
       break;
     case IDENTIFIER:
-    {
-      TOKEN* t = term;
-      return (TOKEN *) term;
+      return term;
       break;
-    }
     case CONSTANT:
-      {
-        //Term holds its value on the right child
-        VALUE *val = term;
-        val->v.integer = term->right;
-        return val;
-        break;
-      }
+      //Term holds its value on the right child
+      return term->right;
+      break;
     case STRING_LITERAL:
-      {
-        //Term holds its value on the right child
-        VALUE *val = term;
-        val->v.string = term->right;
-        return val;
-        break;
-      }
+      //Term holds its value on the left child
+      return term->left;
     case APPLY:
       //Process calling of functions
       break;
     case VOID: case FUNCTION: case INT:
       break;
     case 'd':
-      // TODO: hold the data in the environment so we know which funcitons are which
-
-
       //Left child is an AST for Return type
       interpret(term->left,env);
       //Right child is the Name and arguments
@@ -101,21 +86,20 @@ VALUE* interpret(NODE *term, ENV *env) {
       assign_value(interpret(term->left,env),env->frames,interpret(term->right,env));
       break;
     case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
-      // TODO: make another c file with methods handling this cases
-      //operations return
-      //should i dissalocate the memory or no?
-      // TODO: check if left type matches right type
       {
-        VALUE* cons1 = interpret(term->left,env);
-        VALUE* cons2 = interpret(term->right,env);
-        VALUE* result = malloc(sizeof(VALUE*));
-        if(cons1 != NULL && cons2 != NULL && cons1->type != NULL && cons2->type != NULL) {
-          result->v.integer = cons1->v.integer + cons2->v.integer;
-          return result;
-        }
-        return -1;
+        int lval;
+        int rval;
+        if(term->left->left->type == IDENTIFIER) 
+          lval = find_name(interpret(term->left,env), env->frames);
+        else lval = (int)interpret(term->left,env);
+
+        if(term->right->left->type == IDENTIFIER) 
+          rval = find_name(interpret(term->right,env), env->frames);
+        else rval = (int)interpret(term->right,env);
+        
+        return lval + rval; 
+        break;
       }
-      break;
     case IF:
       break;
     case WHILE:
