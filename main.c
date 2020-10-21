@@ -70,10 +70,12 @@ void print_tree0(NODE *tree, int level)
     int i;
     if (tree==NULL) return;
     if (tree->type==LEAF) {
+      //printf("%d", tree->type);
       print_leaf(tree->left, level);
     }
     else {
       for(i=0; i<level; i++) putchar(' ');
+      //printf("%d", tree->type);
       printf("%s\n", named(tree->type));
 /*       if (tree->type=='~') { */
 /*         for(i=0; i<level+2; i++) putchar(' '); */
@@ -97,7 +99,13 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
+    //Create first frame which is main
     NODE* tree;
+    FRAME main;
+    ENV env;
+    env.frames = &main;
+    ENV *penv = &env;
+    
     if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
     init_symbtable();
     printf("--C COMPILER\n");
@@ -106,8 +114,13 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     tree = ans;
-    int exit_code;
-    exit_code = interpret(tree);   
-    printf("\nTerminated with exit code '%d'\n",exit_code); 
-    return exit_code;
+    VALUE* exit_code = interpret(tree,penv);  
+    if(exit_code != NULL) {
+      printf("\nTerminated with exit code '%d'\n",exit_code->v.integer); 
+      return exit_code->v.integer;
+    }else {
+      printf("\nTerminated with exit code 0\n");
+      return 0;
+    }
+    
 }

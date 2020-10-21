@@ -8,13 +8,18 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc",
+            "program": "${workspaceFolder}/mycc",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
-        }
-    ]
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "text": "settings set target.input-path ${workspaceFolder}/testing/debugtest"
+                }
+            ]
+        },
+   ]
 }

@@ -1,3 +1,5 @@
+#ifndef __INTERPRETER_H
+#define __INTERPRETER_H
 #include "nodes.h"
 
 typedef struct value {
@@ -20,5 +22,14 @@ typedef struct frame {
   struct frame *next ; 
 } FRAME ;
 
-VALUE* interpret(NODE*);
+typedef struct env {
+  FRAME *frames ;
+} ENV ;
 
+
+VALUE* interpret(NODE*,ENV*);
+VALUE* find_name(TOKEN*,FRAME*);
+VALUE* assign_value(TOKEN*,FRAME*,VALUE*);
+VALUE* declare(TOKEN*,FRAME*);
+
+#endif
