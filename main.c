@@ -4,6 +4,7 @@
 #include "C.tab.h"
 #include <string.h>
 #include "interpreter.h"
+#include "tac_generator.h"
 
 char *named(int t)
 {
@@ -101,10 +102,8 @@ int main(int argc, char** argv)
 {
     //Create first frame which is main
     NODE* tree;
-    FRAME main;
-    ENV env;
-    env.frames = &main;
-    ENV *penv = &env;
+    ENV *env = (ENV *)malloc(sizeof(ENV));
+    TAC *seq;
     
     if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
     init_symbtable();
@@ -114,7 +113,9 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     tree = ans;
-    VALUE* exit_code = interpret(tree,penv);  
+    //VALUE *exit_code = interpret(tree,env);
+    TAC *exit_code = tac_generator(tree,&seq);  
     printf("\nTerminated with exit code '%d'\n",exit_code);
+    printTAC(seq);
     return exit_code;
 }
