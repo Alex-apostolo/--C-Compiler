@@ -6,6 +6,7 @@
 #include "interpreter.h"
 #include "tac_generator.h"
 
+
 char *named(int t)
 {
     static char b[100];
@@ -100,6 +101,8 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
+    // Handle flags -E preprossesor, -S assembly code generation, -c object code generation
+
     //Create first frame which is main
     NODE* tree;
     ENV *env = (ENV *)malloc(sizeof(ENV));
@@ -114,8 +117,8 @@ int main(int argc, char** argv)
     print_tree(tree);
     tree = ans;
     //VALUE *exit_code = interpret(tree,env);
-    TAC *exit_code = tac_generator(tree,&seq);  
-    printf("\nTerminated with exit code '%d'\n",exit_code);
+    tac_generator(tree,&seq);  
+    printf("\nTerminated with exit code '%d'\n",seq);
     printTAC(seq);
-    return exit_code;
+    return seq;
 }
