@@ -13,12 +13,12 @@ typedef struct call {
 } CALL ;
 
 typedef struct block {
-    int nvars ;
+    int *nvars ;
 } BLOCK ;
 
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; EXPR expr; int ret; } args ;
+    union { BLOCK block ; CALL call ; EXPR expr; char *ret; } args ;
     struct tac * next ;
 } TAC ;
 

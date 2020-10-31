@@ -7,6 +7,8 @@
 #define BLOCK_CON 278
 
 void append(TAC **,TAC *);
+int nvars = 0;
+char *svars[31];
 
 void *tac_generator(NODE* term, TAC** seq) {
   switch(term->type) {
@@ -14,9 +16,10 @@ void *tac_generator(NODE* term, TAC** seq) {
       //Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
       return tac_generator(term->left, seq); 
       break;
-    case IDENTIFIER:
+    case IDENTIFIER: {
       return term;
       break;
+    }
     case CONSTANT:
       //Term holds its value on the right child
       return term->right;
@@ -44,7 +47,7 @@ void *tac_generator(NODE* term, TAC** seq) {
         block->op = BLOCK_CON; /* This is the OP CODE for BLOCK*/
         // TODO: make it track how many variables have been declared
         // maybe at the end of the return
-        block->args.block.nvars = 1;
+        block->args.block.nvars = &nvars;
         append(seq,block);
         return tac_generator(term->right,seq);
       } else {
@@ -78,7 +81,7 @@ void *tac_generator(NODE* term, TAC** seq) {
       if(term->left != NULL) {
         if(term->left->type == LEAF && term->left->left->type == IDENTIFIER) {
           //return find_name(tac_generator(term->left,seq));
-          ret->args.ret = 69;
+          ret->args.ret = ((TOKEN *)tac_generator(term->left,seq))->lexeme;
           append(seq,ret);
           return *seq;
         } else 
@@ -93,6 +96,17 @@ void *tac_generator(NODE* term, TAC** seq) {
       break;
       }
     case '~':
+      //Left child is the type 
+      tac_generator(term->left,seq);
+      //Right child is the variable name
+      if(term->right->type == LEAF){ 
+        svars[nvars] = ((TOKEN *)tac_generator(term->right,seq))->lexeme;
+      } else {
+        //Right child is the AST "=" and we declare the variable before assigning
+        svars[nvars] = ((TOKEN *)tac_generator(term->right->left,seq))->lexeme;
+        tac_generator(term->right,seq);
+      }
+      nvars++;
       break;
     case ';':
       //Left child is the first item or a sequence; returned values are ignored
@@ -101,6 +115,7 @@ void *tac_generator(NODE* term, TAC** seq) {
       return tac_generator(term->right,seq);
       break;
     case '=':
+      tac_generator(term->right,seq);
       break;
     case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
       {
@@ -149,10 +164,10 @@ void printTAC(TAC *seq) {
       printf("proc %s ()\n",temp->args.call.name->lexeme);
       break;
     case BLOCK_CON:
-      printf("block %d\n",temp->args.block.nvars);
+      printf("block %d\n",*(temp->args.block.nvars));
       break;
     case RETURN:
-      printf("return %d\n",temp->args.ret);
+      printf("return %s\n",temp->args.ret);
       break;
     case '+':
       printf("add %d %d %d\n", temp->args.expr.dst, temp->args.expr.src1, temp->args.expr.src2);
