@@ -2,6 +2,10 @@
 #define __TAC_G
 #include "token.h"
 
+#define BLOCK_OP 278
+#define LOAD_OP 279
+#define STORE_OP 280
+
 typedef struct expr {
     TOKEN* src1;
     TOKEN* src2;
@@ -16,9 +20,19 @@ typedef struct block {
     int *nvars ;
 } BLOCK ;
 
+typedef struct load {
+    char *treg ;
+    int value;
+} LOAD;
+
+typedef struct store {
+    char *treg;
+    char *identifier;
+} STORE;
+
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; EXPR expr; char *ret; } args ;
+    union { BLOCK block ; CALL call ; LOAD load; STORE store; EXPR expr; char *ret; } args ;
     struct tac * next ;
 } TAC ;
 
