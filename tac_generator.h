@@ -7,9 +7,9 @@
 #define STORE_OP 280
 
 typedef struct expr {
-    TOKEN* src1;
-    TOKEN* src2;
-    TOKEN* dst;
+    char* src1;
+    char* src2;
+    char* dst;
 } EXPR;
 
 typedef struct call {
@@ -22,7 +22,7 @@ typedef struct block {
 
 typedef struct load {
     char *treg ;
-    int value;
+    char *value;
 } LOAD;
 
 typedef struct store {
