@@ -75,6 +75,7 @@ void *tac_generator(NODE* term, TAC** seq) {
       break;
     case RETURN:
      {
+      // TODO: fix return
       //Left child is an AST of the expression whose value is to be returned
       // TODO: handle the case where left child is identifier and the case for everything else
       TAC *ret = (TAC *)malloc(sizeof(TAC));
@@ -119,8 +120,10 @@ void *tac_generator(NODE* term, TAC** seq) {
     case '=':
     {
       //Creates TAC for rhs of expression
-      TAC *rhs = create_load_TAC(tac_generator(term->right,seq));
-      append(seq,rhs);
+      if(term->right->type == LEAF) {
+        TAC *rhs = create_load_TAC(tac_generator(term->right,seq));
+        append(seq,rhs);
+      }else tac_generator(term->right,seq);
 
       //Creates TAC for lhs of expression
       TAC *lhs = create_store_TAC(tac_generator(term->left,seq));
@@ -136,7 +139,7 @@ void *tac_generator(NODE* term, TAC** seq) {
         TAC *src2 = create_load_TAC(tac_generator(term->right,seq));
         append(seq,src2);
 
-        //Creates add TAC instructions
+        //Creates add TAC instruction
         TAC *add = (TAC *)malloc(sizeof(TAC));
         add->next = NULL;
         add->op = term->type;
@@ -160,6 +163,7 @@ void *tac_generator(NODE* term, TAC** seq) {
 char *treg_generator() {
   char *str = malloc(3 * sizeof(char));
   snprintf(str,sizeof(str),"t%d",ntreg++);
+  latest_treg = str;
   return str;
 }
 
@@ -195,7 +199,7 @@ TAC *create_load_TAC(TOKEN *term) {
 }
 
 TAC *create_store_TAC(TOKEN *term) {
-  char *treg = treg_generator();
+  char *treg = latest_treg;
   TAC *store = malloc(sizeof(TAC));
   store->next = NULL;
   store->op = STORE_OP;
