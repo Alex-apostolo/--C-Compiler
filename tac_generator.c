@@ -1,16 +1,18 @@
+#include <stdlib.h>
 #include "nodes.h"
 #include "C.tab.h"
 #include "tac_generator.h"
-#include <stdlib.h>
 #include "interpreter.h"
 
 /*Function definitions*/
 void append(TAC **,TAC *);
 char *treg_generator();
 TAC *create_load_TAC(TOKEN *term);
+TAC *create_store_TAC(TOKEN *term);
 
 /*Global Variables*/
 int ntreg = 0;
+char *latest_treg;
 int nvars = 0;
 char *svars[31];
 
@@ -121,29 +123,24 @@ void *tac_generator(NODE* term, TAC** seq) {
       append(seq,rhs);
 
       //Creates TAC for lhs of expression
-      //Create method for TAC store
-      char *treg = treg_generator();
-      TAC *store = malloc(sizeof(TAC));
-      store->next = NULL;
-      store->op = STORE_OP;
-      store->args.store.treg = treg;
-      store->args.store.identifier = ((TOKEN *)tac_generator(term->left,seq))->lexeme;
-      append(seq,store);
+      TAC *lhs = create_store_TAC(tac_generator(term->left,seq));
+      append(seq,lhs);
       break;
     }
     case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
       {
+        //Creates load TAC instructions
         TAC *src1 = create_load_TAC(tac_generator(term->left,seq));
         append(seq,src1);
 
         TAC *src2 = create_load_TAC(tac_generator(term->right,seq));
         append(seq,src2);
 
+        //Creates add TAC instructions
         TAC *add = (TAC *)malloc(sizeof(TAC));
         add->next = NULL;
         add->op = term->type;
 
-        //assign tregs to add TAC instruction
         add->args.expr.src1 = src1->args.load.treg;
         add->args.expr.src2 = src2->args.load.treg;
         add->args.expr.dst = treg_generator();
@@ -160,15 +157,10 @@ void *tac_generator(NODE* term, TAC** seq) {
   }
 }
 
-TAC *create_load_TAC(TOKEN *term) {
-  char *treg = treg_generator();
-  TAC *load = malloc(sizeof(TAC));
-  load->next = NULL;
-  load->op = LOAD_OP;
-  load->args.load.treg = treg;
-  if(term->type == IDENTIFIER) load->args.load.value = term->lexeme;
-  else load->args.load.value = term->value;
-  return load;
+char *treg_generator() {
+  char *str = malloc(3 * sizeof(char));
+  snprintf(str,sizeof(str),"t%d",ntreg++);
+  return str;
 }
 
 void append(TAC **seq, TAC *new_node) {
@@ -187,10 +179,34 @@ void append(TAC **seq, TAC *new_node) {
   return;
 }
 
-char *treg_generator() {
-  char *str = malloc(3 * sizeof(char));
-  snprintf(str,sizeof(str),"t%d",ntreg++);
-  return str;
+TAC *create_load_TAC(TOKEN *term) {
+  char *treg = treg_generator();
+  TAC *load = malloc(sizeof(TAC));
+  load->next = NULL;
+  load->op = LOAD_OP;
+  load->args.load.treg = treg;
+  if(term->type == IDENTIFIER) load->args.load.value = term->lexeme;
+  else{
+    char *temp = malloc(100*sizeof(char));
+    snprintf(temp,100,"%d",term->value);
+    load->args.load.value = temp;
+  }
+  return load;
+}
+
+TAC *create_store_TAC(TOKEN *term) {
+  char *treg = treg_generator();
+  TAC *store = malloc(sizeof(TAC));
+  store->next = NULL;
+  store->op = STORE_OP;
+  store->args.store.treg = treg;
+  if(term->type == IDENTIFIER) store->args.store.value = term->lexeme;
+  else{
+    char *temp = malloc(100*sizeof(char));
+    snprintf(temp,100,"%d",term->value);
+    store->args.store.value = temp;
+  }
+  return store;
 }
 
 void printTAC(TAC *seq) {
@@ -205,10 +221,10 @@ void printTAC(TAC *seq) {
       printf("block %d\n",*(temp->args.block.nvars));
       break;
     case LOAD_OP:
-      printf("load %s %d\n",temp->args.load.treg, temp->args.load.value);
+      printf("load %s %s\n",temp->args.load.treg, temp->args.load.value);
       break;
     case STORE_OP:
-      printf("store %s %s\n",temp->args.store.treg, temp->args.store.identifier);
+      printf("store %s %s\n",temp->args.store.treg, temp->args.store.value);
       break;
     case RETURN:
       printf("return %s\n",temp->args.ret);

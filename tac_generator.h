@@ -27,7 +27,7 @@ typedef struct load {
 
 typedef struct store {
     char *treg;
-    char *identifier;
+    char *value;
 } STORE;
 
 typedef struct tac {
