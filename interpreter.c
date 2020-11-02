@@ -43,7 +43,7 @@ VALUE* interpret(NODE *term, ENV *env) {
       break;
     case 'F':
       //Left child is the Name of function
-      interpret(term->left,env);
+      declare(interpret(term->left,env),env->frames);
       //Right child are the Arguments of function 
       if(term->right != NULL) {
         interpret(term->right,env);
