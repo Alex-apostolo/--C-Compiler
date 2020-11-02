@@ -82,16 +82,13 @@ void *tac_generator(NODE* term, TAC** seq) {
       ret->next = NULL;
       ret->op = RETURN;
       if(term->left != NULL) {
-        if(term->left->type == LEAF && term->left->left->type == IDENTIFIER) {
-          //return find_name(tac_generator(term->left,seq));
-          ret->args.ret = ((TOKEN *)tac_generator(term->left,seq))->lexeme;
-          append(seq,ret);
-          return *seq;
-        } else 
-          // destination is returned
-          ret->args.ret = tac_generator(term->left,seq);
-          append(seq,ret); 
-          return *seq;
+        if(term->left->type == LEAF) {
+          TOKEN *temp = tac_generator(term->left,seq);
+          if(term->left->left->type == IDENTIFIER) ret->args.ret = temp->lexeme;
+          else if(term->left->left->type == CONSTANT) ret->args.ret = temp->value;
+        } else ret->args.ret = tac_generator(term->left,seq);
+        append(seq,ret); 
+        return *seq;
       } else{
         // TODO: throw an error
         printf("Error no return type\n");
@@ -148,7 +145,7 @@ void *tac_generator(NODE* term, TAC** seq) {
         add->args.expr.src2 = src2->args.load.treg;
         add->args.expr.dst = treg_generator();
         append(seq,add);
-        return seq;
+        return add->args.expr.dst;
         break;
       }
     case IF:
