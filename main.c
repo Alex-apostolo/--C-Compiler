@@ -105,9 +105,9 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
-    bool interp = false;
-    bool tac = false;
-    bool mips = false;
+    int interp = false;
+    int tac = false;
+    int mips = false;
 
     NODE* tree;
     //First frame is the main function
@@ -115,40 +115,64 @@ int main(int argc, char** argv)
     TAC *seq;
 
     int option;
-    while((option = getopt(argc,argv,"diItTsS")) != -1) {
+    while((option = getopt(argc,argv,"dits")) != -1) {
       switch (option){
       case 'd':
         yydebug = 1;
-        printf("d");
         break;
-      case 'i': case 'I':
+      case 'i':
         interp = true;
         break;
-      case 't': case 'T':
-        tac = true;
-        break;
-      case 's': case 'S':
+      case 's':
         mips = true;
         break;
-
+      case 't': 
+        tac = true;
+        break;
       default:
-      //do the default shit
         break;
       }
     }
 
-    if(!(interp ^ tac ^ mips)) {
-      fprintf(stderr,"Flags -i/I,-t/T,-s/S should be mutually exlusive!\n");
+    if((interp + tac + mips) > 1) {
+      fprintf(stderr,"ERROR: Flags -i,-t,-s must be mutually exlusive!\n");
       return -1;
     }
 
+    char *filename;
     init_symbtable();
-    printf("--C COMPILER\n");
-    yyparse();
-    tree = ans;
-    printf("parse finished with %p\n", tree);
-    print_tree(tree);
-    tree = ans;
+
+    if ((filename = argv[optind]) != NULL) {
+
+      if(access(filename,R_OK) == -1){
+        fprintf(stderr,"ERROR: File specified does not exist!");
+        return -1;
+      }
+
+      //read from current directory
+      FILE *file = fopen(argv[optind],'r');
+      char *singleLine[150];
+      char *wholeFile[500*150];
+      while(feof(file)){
+        fgets(singleLine,150,file);
+        strcat(wholeFile,singleLine);
+      }
+      yy_scan_string(wholeFile);
+      yyparse();
+      tree = ans;
+      fclose(file);
+
+    }else {
+
+      printf("--C COMPILER\n");
+      yyparse();
+      tree = ans;
+      printf("parse finished with %p\n", tree);
+      print_tree(tree);
+      tree = ans;
+      //interpret the result
+
+    }
 
     if(interpret == true){
       VALUE *exit_code = interpret(tree,env);
