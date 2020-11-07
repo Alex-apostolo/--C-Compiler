@@ -5,6 +5,10 @@
 #include <string.h>
 #include "interpreter.h"
 #include "tac_generator.h"
+#include "mips_generator.h"
+#include <unistd.h>
+#include <stdbool.h>
+
 
 
 char *named(int t)
@@ -101,14 +105,43 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
-    // Handle flags -E preprossesor, -S assembly code generation, -c object code generation
+    bool interp = false;
+    bool tac = false;
+    bool mips = false;
 
-    //Create first frame which is main
     NODE* tree;
+    //First frame is the main function
     ENV *env = (ENV *)malloc(sizeof(ENV));
     TAC *seq;
-    
-    if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
+
+    int option;
+    while((option = getopt(argc,argv,"diItTsS")) != -1) {
+      switch (option){
+      case 'd':
+        yydebug = 1;
+        printf("d");
+        break;
+      case 'i': case 'I':
+        interp = true;
+        break;
+      case 't': case 'T':
+        tac = true;
+        break;
+      case 's': case 'S':
+        mips = true;
+        break;
+
+      default:
+      //do the default shit
+        break;
+      }
+    }
+
+    if(!(interp ^ tac ^ mips)) {
+      fprintf(stderr,"Flags -i/I,-t/T,-s/S should be mutually exlusive!\n");
+      return -1;
+    }
+
     init_symbtable();
     printf("--C COMPILER\n");
     yyparse();
@@ -116,9 +149,22 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     tree = ans;
-    //VALUE *exit_code = interpret(tree,env);
-    tac_generator(tree,&seq);  
-    printf("\nTerminated with exit code '%d'\n",seq);
-    printTAC(seq);
-    return seq;
+
+    if(interpret == true){
+      VALUE *exit_code = interpret(tree,env);
+      printf("\nTerminated with exit code '%d'\n",exit_code);
+      return exit_code;
+    } 
+
+    if(tac == true){
+      tac_generator(tree,&seq);
+      printTAC(seq);
+      return 0;
+    } 
+
+    if(mips == true){
+      tac_generator(tree,&seq);
+      mips_generator(seq);
+      return 0;
+    }
 }

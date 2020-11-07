@@ -1,6 +1,7 @@
 #ifndef __TAC_G
 #define __TAC_G
 #include "token.h"
+#include "nodes.h"
 
 #define BLOCK_OP 278
 #define LOAD_OP 279
@@ -37,4 +38,6 @@ typedef struct tac {
 } TAC ;
 
 void printTAC(TAC *);
+void *tac_generator(NODE *,TAC **);
+
 #endif
