@@ -150,50 +150,64 @@ int main(int argc, char** argv)
     }
 
     if((interp + tac + mips) > 1) {
-      fprintf(stderr,"ERROR: Flags -i,-t,-s must be mutually exlusive!\n");
+      fprintf(stderr,"mycc: Flags -i,-t,-s must be mutually exlusive!\n");
       return -1;
     }
 
     char *filename;
     init_symbtable();
 
-    if ((filename = argv[optind])) {
-
+    //Last argument is always the file except if -p is specified for interactive interpreter 
+    if((filename = argv[optind]) != NULL) {
       if(access(filename,R_OK) == -1){
-        fprintf(stderr,"ERROR: File specified does not exist!");
+        fprintf(stderr,"mycc: File specified does not exist! Please provide an extant file...\n");
         return -1;
       }
 
-      //read from current directory
-      FILE *file = fopen(argv[optind],'r');
+      FILE *file = fopen(filename,"r");
       char *singleLine[150];
-      char *wholeFile[500*150];
-      while(feof(file)){
+      // TODO: change it so that the string is dynamic
+      // Currently it can hold 50 lines
+      char *wholeFile[50*150];
+      while(!feof(file)){
         fgets(singleLine,150,file);
         strcat(wholeFile,singleLine);
       }
+      strcat(wholeFile,"\n");
       yy_scan_string(wholeFile);
       yyparse();
       tree = ans;
       fclose(file);
 
-    }
+      if(interp == true){
+        VALUE *exit_code = interpret(tree,env);
+        printf("Terminated with exit code '%d'\n",exit_code);
+        return exit_code;
+      } 
 
-    if(interpret == true){
-      VALUE *exit_code = interpret(tree,env);
-      printf("\nTerminated with exit code '%d'\n",exit_code);
-      return exit_code;
-    } 
+      if(tac == true){
+        tac_generator(tree,&seq);
+        // print to file .t extension
+        printTAC(seq);
+        return 0;
+      } 
 
-    if(tac == true){
-      tac_generator(tree,&seq);
-      printTAC(seq);
-      return 0;
-    } 
+      if(mips == true){
+        tac_generator(tree,&seq);
+        // print to file .s extension
+        mips_generator(seq);
+        return 0;
+      }
 
-    if(mips == true){
-      tac_generator(tree,&seq);
-      mips_generator(seq);
-      return 0;
+      //Default action is to run the compiler
+      if(interp == false && mips == false && tac == false) {
+        tac_generator(tree,&seq);
+        mips_generator(seq);
+        // TODO: run mips code
+        return 0;
+      }
+    }else{
+       fprintf(stderr,"mycc: You need to specify a file to read from, otherwise use -p flag for interactive interpreter\n");
+       return -1;
     }
 }
