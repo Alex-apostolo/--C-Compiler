@@ -13,7 +13,7 @@ while read line
 do 
 if [ "$line" != "%%" ] 
 then
-$MYCC <<< $line > /dev/null
+$MYCC -p <<< $line > /dev/null
 str="$a: Terminates with -> $?"
 echo $str
 echo $str >> $TMPSOLPATH

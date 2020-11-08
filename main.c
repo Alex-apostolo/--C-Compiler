@@ -110,13 +110,28 @@ int main(int argc, char** argv)
     int mips = false;
 
     NODE* tree;
-    //First frame is the main function
-    ENV *env = (ENV *)malloc(sizeof(ENV));
     TAC *seq;
 
+    ENV *env = malloc(sizeof(ENV));
+    FRAME *main = malloc(sizeof(FRAME));
+    env->frames = main;
+
     int option;
-    while((option = getopt(argc,argv,"dits")) != -1) {
+    while((option = getopt(argc,argv,"pdist")) != -1) {
       switch (option){
+      case 'p':
+        init_symbtable();
+        printf("--C COMPILER\n");
+        yyparse();
+        tree = ans;
+        printf("parse finished with %p\n", tree);
+        print_tree(tree);
+        tree = ans;
+
+        VALUE *exit_code = interpret(tree,env);
+        printf("\nTerminated with exit code '%d'\n",exit_code);
+        return exit_code;
+        break;
       case 'd':
         yydebug = 1;
         break;
@@ -142,7 +157,7 @@ int main(int argc, char** argv)
     char *filename;
     init_symbtable();
 
-    if ((filename = argv[optind]) != NULL) {
+    if ((filename = argv[optind])) {
 
       if(access(filename,R_OK) == -1){
         fprintf(stderr,"ERROR: File specified does not exist!");
@@ -161,16 +176,6 @@ int main(int argc, char** argv)
       yyparse();
       tree = ans;
       fclose(file);
-
-    }else {
-
-      printf("--C COMPILER\n");
-      yyparse();
-      tree = ans;
-      printf("parse finished with %p\n", tree);
-      print_tree(tree);
-      tree = ans;
-      //interpret the result
 
     }
 

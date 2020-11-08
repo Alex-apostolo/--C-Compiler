@@ -9,18 +9,13 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/mycc",
-            "args": [],
+            "args": ["-p"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Make",
-            "setupCommands": [
-                {
-                    "text": "settings set target.input-path ${workspaceFolder}/testing/debugtest"
-                }
-            ]
-        }
-   ]
+            "MIMode": "lldb"
+        },
+    ]
 }
