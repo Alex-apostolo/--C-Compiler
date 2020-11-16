@@ -1,8 +1,7 @@
 #! /bin/bash
-readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions
 readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/tests.in
 readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
-readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tac_output
+readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tmp_tac
 
 a=1
 printf "Start Testing at: "
@@ -18,3 +17,4 @@ $MYCC -t $FILE
 a=$((a+1))
 fi
 done < $TESTSFILE
+rm $FILE
