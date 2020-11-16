@@ -173,7 +173,6 @@ int main(int argc, char** argv)
         fgets(singleLine,150,file);
         strcat(wholeFile,singleLine);
       }
-      strcat(wholeFile,"\n");
       yy_scan_string(wholeFile);
       yyparse();
       tree = ans;

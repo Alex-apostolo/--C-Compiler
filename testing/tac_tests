@@ -1,0 +1,20 @@
+#! /bin/bash
+readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions
+readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/tests.in
+readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
+readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tac_output
+
+a=1
+printf "Start Testing at: "
+date
+printf "\n"
+while read line
+do 
+if [ "$line" != "%%" ] 
+then
+echo -n $line > $FILE
+$MYCC -t $FILE
+
+a=$((a+1))
+fi
+done < $TESTSFILE

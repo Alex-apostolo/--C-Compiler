@@ -39,5 +39,6 @@ typedef struct tac {
 
 void printTAC(TAC *);
 void *tac_generator(NODE *,TAC **);
+char* my_itoa(int);
 
 #endif

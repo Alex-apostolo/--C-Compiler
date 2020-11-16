@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "nodes.h"
 #include "C.tab.h"
 #include "tac_generator.h"
@@ -75,7 +76,6 @@ void *tac_generator(NODE* term, TAC** seq) {
       break;
     case RETURN:
      {
-      // TODO: fix return
       //Left child is an AST of the expression whose value is to be returned
       // TODO: handle the case where left child is identifier and the case for everything else
       TAC *ret = (TAC *)malloc(sizeof(TAC));
@@ -85,7 +85,7 @@ void *tac_generator(NODE* term, TAC** seq) {
         if(term->left->type == LEAF) {
           TOKEN *temp = tac_generator(term->left,seq);
           if(term->left->left->type == IDENTIFIER) ret->args.ret = temp->lexeme;
-          else if(term->left->left->type == CONSTANT) ret->args.ret = temp->value;
+          else if(term->left->left->type == CONSTANT) ret->args.ret = my_itoa(temp->value);
         } else ret->args.ret = tac_generator(term->left,seq);
         append(seq,ret); 
         return *seq;
@@ -157,6 +157,12 @@ void *tac_generator(NODE* term, TAC** seq) {
   }
 }
 
+char* my_itoa(int num) {
+   char *str = malloc(100 * sizeof(char));
+   sprintf(str, "%d", num);
+   return str;
+}
+
 char *treg_generator() {
   char *str = malloc(3 * sizeof(char));
   snprintf(str,sizeof(str),"t%d",ntreg++);
@@ -211,6 +217,7 @@ TAC *create_store_TAC(TOKEN *term) {
 }
 
 void printTAC(TAC *seq) {
+  printf("\n");
   TAC *temp = seq;
   while(temp != NULL) {
     switch (temp->op)
@@ -238,4 +245,5 @@ void printTAC(TAC *seq) {
     }
     temp = temp->next;
   }
+  printf("\n");
 }
