@@ -110,11 +110,6 @@ int main(int argc, char** argv)
     int mips = false;
 
     NODE* tree;
-    TAC *seq;
-
-    ENV *env = malloc(sizeof(ENV));
-    FRAME *main = malloc(sizeof(FRAME));
-    env->frames = main;
 
     int option;
     while((option = getopt(argc,argv,"pdist")) != -1) {
@@ -127,6 +122,9 @@ int main(int argc, char** argv)
         printf("parse finished with %p\n", tree);
         print_tree(tree);
         tree = ans;
+        ENV *env = malloc(sizeof(ENV));
+        FRAME *main = malloc(sizeof(FRAME));
+        env->frames = main;
 
         VALUE *exit_code = interpret(tree,env);
         printf("\nTerminated with exit code '%d'\n",exit_code);
@@ -179,30 +177,41 @@ int main(int argc, char** argv)
       fclose(file);
 
       if(interp == true){
+        ENV *env = malloc(sizeof(ENV));
+        FRAME *main = malloc(sizeof(FRAME));
+        env->frames = main;
+
         VALUE *exit_code = interpret(tree,env);
+        // Free all fields of env
         printf("Terminated with exit code '%d'\n",exit_code);
         return exit_code;
       } 
 
       if(tac == true){
+        TAC *seq;
         tac_generator(tree,&seq);
         // print to file .t extension
         printTAC(seq);
+        // Free all fields of seq
         return 0;
       } 
 
       if(mips == true){
+        TAC *seq;
         tac_generator(tree,&seq);
         // print to file .s extension
         mips_generator(seq);
+        // Free all fields of seq
         return 0;
       }
 
       //Default action is to run the compiler
       if(interp == false && mips == false && tac == false) {
+        TAC *seq;
         tac_generator(tree,&seq);
         mips_generator(seq);
         // TODO: run mips code
+        // Free all fields of seq
         return 0;
       }
     }else{

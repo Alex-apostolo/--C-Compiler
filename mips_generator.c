@@ -1,13 +1,20 @@
 #include "tac_generator.h"
 #include "C.tab.h"
 #include <stdlib.h>
+#include <stdio.h>
+#define OUTPUT "mips.s"
 
 void mips_generator(TAC *seq) {
     if(seq == NULL) return;
+    //Removes file and opens a new one with the same name for appending
+    remove(OUTPUT);
+    FILE *file = fopen(OUTPUT,"a");
+
+    if(file == NULL) fprintf(stderr,"Error occured trying to create or override file");
+
+    fprintf(file,"\t.globl main\n\t.text\nmain:");
+    
     TAC *temp = seq;
-    char *mips = malloc(10000*sizeof(char));
-    //open file
-    //append to file in the while loop
     while(temp->next != NULL) {
         switch(temp->op) {
             case FUNCTION: 
@@ -25,4 +32,5 @@ void mips_generator(TAC *seq) {
         }
         temp = temp->next;
     }
+    fclose(file);
 }
