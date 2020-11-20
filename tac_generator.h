@@ -6,6 +6,7 @@
 #define BLOCK_OP 278
 #define LOAD_OP 279
 #define STORE_OP 280
+#define TREG 281
 
 typedef struct expr {
     char* src1;
@@ -31,9 +32,14 @@ typedef struct store {
     char *value;
 } STORE;
 
+typedef struct ret {
+    int type;
+    union {char *identifier ; int constant ; char *treg ;} val;
+} RET;
+
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; LOAD load; STORE store; EXPR expr; char *ret; } args ;
+    union { BLOCK block ; CALL call ; LOAD load; STORE store; EXPR expr; RET ret; } args ;
     struct tac * next ;
 } TAC ;
 

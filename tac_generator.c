@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "nodes.h"
 #include "C.tab.h"
 #include "tac_generator.h"
@@ -83,9 +84,18 @@ void *tac_generator(NODE* term, TAC** seq) {
       if(term->left != NULL) {
         if(term->left->type == LEAF) {
           TOKEN *temp = tac_generator(term->left,seq);
-          if(term->left->left->type == IDENTIFIER) ret->args.ret = temp->lexeme;
-          else if(term->left->left->type == CONSTANT) ret->args.ret = my_itoa(temp->value);
-        } else ret->args.ret = tac_generator(term->left,seq);
+          if(term->left->left->type == IDENTIFIER) {
+            ret->args.ret.type = IDENTIFIER;
+            ret->args.ret.val.identifier = temp->lexeme;
+          } 
+          else if(term->left->left->type == CONSTANT){
+            ret->args.ret.type = CONSTANT;
+            ret->args.ret.val.constant = temp->value;
+          } 
+        } else {
+          ret->args.ret.type = TREG;
+          ret->args.ret.val.treg = tac_generator(term->left,seq);
+        } 
         append(seq,ret); 
         return *seq;
       } else{
@@ -234,7 +244,17 @@ void printTAC(TAC *seq) {
       printf("store %s %s\n",temp->args.store.treg, temp->args.store.value);
       break;
     case RETURN:
-      printf("return %s\n",temp->args.ret);
+      switch(temp->args.ret.type) {
+        case IDENTIFIER:
+          printf("return %s\n",temp->args.ret.val.identifier);
+        break;
+        case CONSTANT:
+          printf("return %d\n",temp->args.ret.val.constant);
+        break;
+        case TREG:
+          printf("return %s\n",temp->args.ret.val.treg);
+        break;
+      }
       break;
     case '+':
       printf("add %s %s %s\n",temp->args.expr.src1, temp->args.expr.src2, temp->args.expr.dst);
