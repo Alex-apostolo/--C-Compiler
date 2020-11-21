@@ -43,13 +43,6 @@ void *tac_generator(NODE* term, TAC** seq) {
       tac_generator(term->left,seq);
       //Right child is the Function body
       if(term->right != NULL) {
-        TAC *block = (TAC *)malloc(sizeof(TAC));
-        block->next = NULL;
-        block->op = BLOCK_OP; /* This is the OP CODE for BLOCK*/
-        // TODO: make it track how many variables have been declared
-        // maybe at the end of the return
-        block->args.block.nvars = &nvars;
-        append(seq,block);
         return tac_generator(term->right,seq);
       } else {
         return 0;
@@ -97,6 +90,13 @@ void *tac_generator(NODE* term, TAC** seq) {
           ret->args.ret.val.treg = tac_generator(term->left,seq);
         } 
         append(seq,ret); 
+        TAC *block = (TAC *)malloc(sizeof(TAC));
+        block->next = NULL;
+        block->op = BLOCK_OP; /* This is the OP CODE for BLOCK*/
+        // TODO: make it track how many variables have been declared
+        // maybe at the end of the return
+        block->args.block.nvars = &nvars;
+        append(seq,block);
         return *seq;
       } else{
         // TODO: throw an error
@@ -201,11 +201,15 @@ TAC *create_load_TAC(TOKEN *term) {
   load->next = NULL;
   load->op = LOAD_OP;
   load->args.load.treg = treg;
-  if(term->type == IDENTIFIER) load->args.load.value = term->lexeme;
+  if(term->type == IDENTIFIER) {
+    load->args.load.type = IDENTIFIER;
+    load->args.load.val.identifier = term->lexeme;
+    }
   else{
     char *temp = malloc(100*sizeof(char));
     snprintf(temp,100,"%d",term->value);
-    load->args.load.value = temp;
+    load->args.load.type = CONSTANT;
+    load->args.load.val.constant = temp;
   }
   return load;
 }
@@ -235,10 +239,13 @@ void printTAC(TAC *seq) {
       printf("proc %s ()\n",temp->args.call.name->lexeme);
       break;
     case BLOCK_OP:
-      printf("block %d\n",*(temp->args.block.nvars));
+      printf("endblock %d\n",*(temp->args.block.nvars));
       break;
     case LOAD_OP:
-      printf("load %s %s\n",temp->args.load.treg, temp->args.load.value);
+      if(temp->args.load.type == IDENTIFIER)
+      printf("load %s %s\n",temp->args.load.treg, temp->args.load.val.identifier);
+      else
+      printf("load %s %s\n",temp->args.load.treg, temp->args.load.val.constant);
       break;
     case STORE_OP:
       printf("store %s %s\n",temp->args.store.treg, temp->args.store.value);

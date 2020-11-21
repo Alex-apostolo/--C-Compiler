@@ -8,6 +8,12 @@
 #define STORE_OP 280
 #define TREG 281
 
+/*Global Variables*/
+extern int ntreg;
+extern char *latest_treg;
+extern int nvars;
+extern char *svars[];
+
 typedef struct expr {
     char* src1;
     char* src2;
@@ -24,7 +30,8 @@ typedef struct block {
 
 typedef struct load {
     char *treg ;
-    char *value;
+    int type;
+    union {char *identifier ; char *constant ;} val;
 } LOAD;
 
 typedef struct store {
@@ -45,6 +52,7 @@ typedef struct tac {
 
 void printTAC(TAC *);
 void *tac_generator(NODE *,TAC **);
+char *treg_generator();
 char* my_itoa(int);
 
 #endif

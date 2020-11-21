@@ -11,4 +11,4 @@ main:
     syscall
 
     .data
-x: .word 69
+x: 

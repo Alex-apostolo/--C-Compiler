@@ -22,29 +22,49 @@ void mips_generator(TAC *seq) {
         case FUNCTION:
             break;
         case BLOCK_OP:
+            fprintf(file, "\t.data\n");
+            // Declare and don't set, check the type
+            for (int i = 0; i < *temp->args.block.nvars; i++) {
+                fprintf(file, "%s: \n", svars[i]);
+            }
             break;
         case LOAD_OP:
-            //change to int the value of load
-            fprintf(file,"\tli $%s,%s\n",temp->args.load.treg, temp->args.load.value);
+            // change to int the value of load
+            if(temp->args.load.type == IDENTIFIER)
+            fprintf(file, "\tlw $%s,%s\n", temp->args.load.treg,
+                    temp->args.load.val.identifier);
+            else
+            fprintf(file, "\tli $%s,%s\n", temp->args.load.treg,
+                    temp->args.load.val.constant);
             break;
         case STORE_OP:
+            fprintf(file, "\tsw $%s,%s\n", temp->args.store.treg,
+                    temp->args.store.value);
             break;
         case RETURN:
             switch (temp->args.ret.type) {
-            case IDENTIFIER:
-                //printf("return %s\n", temp->args.ret.val.identifier);
+            case IDENTIFIER: {
+                char *regis = treg_generator();
+                fprintf(file,
+                        "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                        regis, temp->args.ret.val.identifier,
+                        regis);
                 break;
+            }
             case CONSTANT:
-                fprintf(file,"\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",temp->args.ret.val.constant);
+                fprintf(file, "\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",
+                        temp->args.ret.val.constant);
                 break;
             case TREG:
-                fprintf(file,"\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n", temp->args.ret.val.treg);
+                fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                        temp->args.ret.val.treg);
                 break;
             }
             // append li $a0,53 li $v0,17 syscall
             break;
         case '+':
-            fprintf(file,"\tadd $%s,$%s,$%s\n",temp->args.expr.dst, temp->args.expr.src1, temp->args.expr.src2);
+            fprintf(file, "\tadd $%s,$%s,$%s\n", temp->args.expr.dst,
+                    temp->args.expr.src1, temp->args.expr.src2);
         case '-':
         case '*':
         case '/':
