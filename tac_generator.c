@@ -229,47 +229,45 @@ TAC *create_store_TAC(TOKEN *term) {
   return store;
 }
 
-void printTAC(TAC *seq) {
-  printf("\n");
+void printTAC(FILE *file,TAC *seq) {
   TAC *temp = seq;
   while(temp != NULL) {
     switch (temp->op)
     {
     case FUNCTION:
-      printf("proc %s ()\n",temp->args.call.name->lexeme);
+      fprintf(file,"proc %s ()\n",temp->args.call.name->lexeme);
       break;
     case BLOCK_OP:
-      printf("endblock %d\n",*(temp->args.block.nvars));
+      fprintf(file,"endblock %d\n",*(temp->args.block.nvars));
       break;
     case LOAD_OP:
       if(temp->args.load.type == IDENTIFIER)
-      printf("load %s %s\n",temp->args.load.treg, temp->args.load.val.identifier);
+      fprintf(file,"load %s %s\n",temp->args.load.treg, temp->args.load.val.identifier);
       else
-      printf("load %s %s\n",temp->args.load.treg, temp->args.load.val.constant);
+      fprintf(file,"load %s %s\n",temp->args.load.treg, temp->args.load.val.constant);
       break;
     case STORE_OP:
-      printf("store %s %s\n",temp->args.store.treg, temp->args.store.value);
+      fprintf(file,"store %s %s\n",temp->args.store.treg, temp->args.store.value);
       break;
     case RETURN:
       switch(temp->args.ret.type) {
         case IDENTIFIER:
-          printf("return %s\n",temp->args.ret.val.identifier);
+          fprintf(file,"return %s\n",temp->args.ret.val.identifier);
         break;
         case CONSTANT:
-          printf("return %d\n",temp->args.ret.val.constant);
+          fprintf(file,"return %d\n",temp->args.ret.val.constant);
         break;
         case TREG:
-          printf("return %s\n",temp->args.ret.val.treg);
+          fprintf(file,"return %s\n",temp->args.ret.val.treg);
         break;
       }
       break;
     case '+':
-      printf("add %s %s %s\n",temp->args.expr.src1, temp->args.expr.src2, temp->args.expr.dst);
+      fprintf(file,"add %s %s %s\n",temp->args.expr.src1, temp->args.expr.src2, temp->args.expr.dst);
       break;
     default:
       break;
     }
     temp = temp->next;
   }
-  printf("\n");
 }
