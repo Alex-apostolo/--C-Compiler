@@ -1,10 +1,10 @@
 #! /bin/bash
-readonly TMPSOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tmp_solutions
-readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions
+readonly RESULT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions_interpreter.out
+readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/solutions_interpreter.in
 readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/tests.in
 readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
 
-rm $TMPSOLPATH
+rm $RESULT
 a=1
 printf "Start Testing at: "
 date
@@ -13,17 +13,17 @@ while read line
 do 
 if [ "$line" != "%%" ] 
 then
-$MYCC <<< $line > /dev/null
+$MYCC -p <<< $line > /dev/null
 str="$a: Terminates with -> $?"
 echo $str
-echo $str >> $TMPSOLPATH
+echo $str >> $RESULT
 
 a=$((a+1))
 fi
 done < $TESTSFILE
 printf "\nEND OF OUTPUT\n\n***DIFFERENCES***\n\n"
 
-diff $TMPSOLPATH $SOLPATH
+diff $RESULT $SOLPATH
 if [ $? = 0 ]
     then 
     printf "All tests passed successfully!!!\n\n"

@@ -5,6 +5,10 @@
 #include <string.h>
 #include "interpreter.h"
 #include "tac_generator.h"
+#include "mips_generator.h"
+#include <unistd.h>
+#include <stdbool.h>
+
 
 
 char *named(int t)
@@ -101,24 +105,117 @@ extern void init_symbtable(void);
 
 int main(int argc, char** argv)
 {
-    // Handle flags -E preprossesor, -S assembly code generation, -c object code generation
+    int interp = false;
+    int tac = false;
+    int mips = false;
 
-    //Create first frame which is main
     NODE* tree;
-    ENV *env = (ENV *)malloc(sizeof(ENV));
-    TAC *seq;
-    
-    if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
+
+    int option;
+    while((option = getopt(argc,argv,"pdist")) != -1) {
+      switch (option){
+      case 'p':
+        init_symbtable();
+        printf("--C COMPILER\n");
+        yyparse();
+        tree = ans;
+        printf("parse finished with %p\n", tree);
+        print_tree(tree);
+        tree = ans;
+        ENV *env = malloc(sizeof(ENV));
+        FRAME *main = malloc(sizeof(FRAME));
+        env->frames = main;
+
+        VALUE *exit_code = interpret(tree,env);
+        printf("\nTerminated with exit code '%d'\n",exit_code);
+        return exit_code;
+        break;
+      case 'd':
+        yydebug = 1;
+        break;
+      case 'i':
+        interp = true;
+        break;
+      case 's':
+        mips = true;
+        break;
+      case 't': 
+        tac = true;
+        break;
+      default:
+        break;
+      }
+    }
+
+    if((interp + tac + mips) > 1) {
+      fprintf(stderr,"mycc: Flags -i,-t,-s must be mutually exlusive!\n");
+      return -1;
+    }
+
+    char *filename;
     init_symbtable();
-    printf("--C COMPILER\n");
-    yyparse();
-    tree = ans;
-    printf("parse finished with %p\n", tree);
-    print_tree(tree);
-    tree = ans;
-    //VALUE *exit_code = interpret(tree,env);
-    tac_generator(tree,&seq);  
-    printf("\nTerminated with exit code '%d'\n",seq);
-    printTAC(seq);
-    return seq;
+
+    //Last argument is always the file except if -p is specified for interactive interpreter 
+    if((filename = argv[optind]) != NULL) {
+      if(access(filename,R_OK) == -1){
+        fprintf(stderr,"mycc: File specified does not exist! Please provide an extant file...\n");
+        return -1;
+      }
+
+      FILE *file = fopen(filename,"r");
+      char *singleLine[150];
+      // TODO: change it so that the string is dynamic
+      // Currently it can hold 50 lines
+      char *wholeFile[50*150];
+      while(!feof(file)){
+        fgets(singleLine,150,file);
+        strcat(wholeFile,singleLine);
+      }
+      yy_scan_string(wholeFile);
+      yyparse();
+      tree = ans;
+      fclose(file);
+
+      if(interp == true){
+        ENV *env = malloc(sizeof(ENV));
+        FRAME *main = malloc(sizeof(FRAME));
+        env->frames = main;
+
+        VALUE *exit_code = interpret(tree,env);
+        // Free all fields of env
+        printf("Terminated with exit code '%d'\n",exit_code);
+        return exit_code;
+      } 
+
+      if(tac == true){
+        TAC *seq;
+        tac_generator(tree,&seq);
+        // print to file .t extension
+        printTAC(seq);
+        // Free all fields of seq
+        return 0;
+      } 
+
+      if(mips == true){
+        TAC *seq;
+        tac_generator(tree,&seq);
+        // print to file .s extension
+        mips_generator(seq);
+        // Free all fields of seq
+        return 0;
+      }
+
+      //Default action is to run the compiler
+      if(interp == false && mips == false && tac == false) {
+        TAC *seq;
+        tac_generator(tree,&seq);
+        mips_generator(seq);
+        // TODO: run mips code
+        // Free all fields of seq
+        return 0;
+      }
+    }else{
+       fprintf(stderr,"mycc: You need to specify a file to read from, otherwise use -p flag for interactive interpreter\n");
+       return -1;
+    }
 }

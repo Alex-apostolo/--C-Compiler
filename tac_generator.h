@@ -1,10 +1,18 @@
 #ifndef __TAC_G
 #define __TAC_G
 #include "token.h"
+#include "nodes.h"
 
 #define BLOCK_OP 278
 #define LOAD_OP 279
 #define STORE_OP 280
+#define TREG 281
+
+/*Global Variables*/
+extern int ntreg;
+extern char *latest_treg;
+extern int nvars;
+extern char *svars[];
 
 typedef struct expr {
     char* src1;
@@ -22,7 +30,8 @@ typedef struct block {
 
 typedef struct load {
     char *treg ;
-    char *value;
+    int type;
+    union {char *identifier ; char *constant ;} val;
 } LOAD;
 
 typedef struct store {
@@ -30,11 +39,20 @@ typedef struct store {
     char *value;
 } STORE;
 
+typedef struct ret {
+    int type;
+    union {char *identifier ; int constant ; char *treg ;} val;
+} RET;
+
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; LOAD load; STORE store; EXPR expr; char *ret; } args ;
+    union { BLOCK block ; CALL call ; LOAD load; STORE store; EXPR expr; RET ret; } args ;
     struct tac * next ;
 } TAC ;
 
 void printTAC(TAC *);
+void *tac_generator(NODE *,TAC **);
+char *treg_generator();
+char* my_itoa(int);
+
 #endif
