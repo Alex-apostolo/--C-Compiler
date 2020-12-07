@@ -105,11 +105,12 @@ int main(int argc, char **argv) {
     int interp = false;
     int tac = false;
     int mips = false;
+    int print_AST = false;
 
     NODE *tree;
 
     int option;
-    while ((option = getopt(argc, argv, "pdist")) != -1) {
+    while ((option = getopt(argc, argv, "pdistf")) != -1) {
         switch (option) {
         case 'p':
             init_symbtable();
@@ -126,6 +127,9 @@ int main(int argc, char **argv) {
             VALUE *exit_code = interpret(tree, env);
             printf("\nTerminated with exit code '%d'\n", exit_code);
             return exit_code;
+            break;
+        case 'f':
+            print_AST = true;
             break;
         case 'd':
             yydebug = 1;
@@ -175,12 +179,15 @@ int main(int argc, char **argv) {
         tree = ans;
         fclose(file);
 
-        if (interp == true) {
-            ENV *env = malloc(sizeof(ENV));
-            FRAME *main = malloc(sizeof(FRAME));
-            env->frames = main;
+        if(print_AST == true) {
+            printf("\n\nparse finished with %p\n", tree);
+            print_tree(tree);
+        }
 
+        if (interp == true) {
+            ENV *env = calloc(1,sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
+            print_bindings(env->frames);
             // Free all fields of env
             printf("\n");
             printf("Terminated with exit code '%d'\n", exit_code);

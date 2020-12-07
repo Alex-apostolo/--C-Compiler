@@ -18,6 +18,7 @@ typedef struct binding {
 } BINDING ;
 
 typedef struct frame {
+  int index;
   BINDING *bindings ;
   struct frame *next ; 
 } FRAME ;
@@ -28,7 +29,10 @@ typedef struct env {
 
 
 VALUE* interpret(NODE*,ENV*);
+VALUE* interpret_(NODE*,ENV*);
+void print_bindings(FRAME *);
 VALUE* find_name(TOKEN*,FRAME*);
+FRAME *find_frame(int,ENV*);
 VALUE* assign_value(TOKEN*,FRAME*,VALUE*);
 VALUE* declare(TOKEN*,FRAME*);
 

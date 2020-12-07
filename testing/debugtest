@@ -1,0 +1,6 @@
+int s = 69;
+void func(){return 0;}
+void func2(){return 2;}
+int p;
+int main(){}
+int pr;
