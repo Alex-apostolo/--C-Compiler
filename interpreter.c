@@ -14,7 +14,7 @@ VALUE *interpret(NODE *term, ENV *env) {
         global->index = last_frame_index;
         env->frames = global;
     }
-    return interpret_(term,env);
+    return interpret_(term, env);
 }
 
 VALUE *interpret_(NODE *term, ENV *env) {
@@ -86,7 +86,8 @@ VALUE *interpret_(NODE *term, ENV *env) {
         }
         break;
     case '~':
-        if (term->left->type == LEAF) { // If left is INT
+        switch (term->left->type) {
+        case LEAF:
             if (term->right->type == LEAF) {
                 // Right child is the variable name
                 declare(interpret_(term->right, env),
@@ -98,7 +99,8 @@ VALUE *interpret_(NODE *term, ENV *env) {
                         find_frame(last_frame_index, env));
                 interpret_(term->right, env);
             }
-        } else if (term->left->type == '~') {
+            break;
+        case '~':
             // interpret_ left sequence
             interpret_(term->left, env);
             // Right will be a function or INT
@@ -106,7 +108,8 @@ VALUE *interpret_(NODE *term, ENV *env) {
                 interpret_(term->right->left, env);
             else
                 interpret_(term->right, env);
-        } else if (term->left->type == 'D') {
+            break;
+        case 'D':
             // Left will be a function
             interpret_(term->left->left, env);
             // Right will be a function or INT
@@ -114,8 +117,8 @@ VALUE *interpret_(NODE *term, ENV *env) {
                 interpret_(term->right->left, env);
             else
                 interpret_(term->right, env);
+            break;
         }
-        // print_bindings(find_frame(0,env));
         break;
     case ';':
         // Left child is the first item or a sequence; returned values are
@@ -187,11 +190,13 @@ VALUE *interpret_(NODE *term, ENV *env) {
 }
 
 void print_bindings(FRAME *frame) {
+    printf("\n\n\n*** BINDING LIST ***\n\n");
     BINDING *temp = frame->bindings;
     while (temp != NULL) {
         printf("%s\n", temp->name->lexeme);
         temp = temp->next;
     }
+    printf("\n*** END OF BINDING LIST ***");
 }
 
 VALUE *find_name(TOKEN *t, FRAME *frame) {

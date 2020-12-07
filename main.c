@@ -106,11 +106,12 @@ int main(int argc, char **argv) {
     int tac = false;
     int mips = false;
     int print_AST = false;
+    int print_bind = false;
 
     NODE *tree;
 
     int option;
-    while ((option = getopt(argc, argv, "pdistf")) != -1) {
+    while ((option = getopt(argc, argv, "pdistfb")) != -1) {
         switch (option) {
         case 'p':
             init_symbtable();
@@ -142,6 +143,9 @@ int main(int argc, char **argv) {
             break;
         case 't':
             tac = true;
+            break;
+        case 'b':
+            print_bind = true;
             break;
         default:
             break;
@@ -179,18 +183,21 @@ int main(int argc, char **argv) {
         tree = ans;
         fclose(file);
 
-        if(print_AST == true) {
-            printf("\n\nparse finished with %p\n", tree);
+        if (print_AST == true) {
+            printf("\n\n\n$$$ PARSE TREE $$$\n\nparse finished with %p\n", tree);
             print_tree(tree);
+            printf("\n$$$ END OF PARSE TREE $$$");
         }
 
         if (interp == true) {
-            ENV *env = calloc(1,sizeof(ENV));
+            ENV *env = calloc(1, sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
-            print_bindings(env->frames);
+            if (print_bind == TRUE)
+                print_bindings(env->frames);
             // Free all fields of env
-            printf("\n");
+            printf("\n\n\n### OUTPUT ###\n\n");
             printf("Terminated with exit code '%d'\n", exit_code);
+            printf("\n### END OF OUTPUT ###\n\n\n");
             return exit_code;
         }
 
