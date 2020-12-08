@@ -2,12 +2,15 @@
 #define __INTERPRETER_H
 #include "nodes.h"
 
+typedef struct closure CLOSURE;
+
 typedef struct value {
   int type ;
   union {
     int integer ;
     int boolean ; 
     char * string ;
+    CLOSURE *closure;
   } v;
 } VALUE; 
 
@@ -23,17 +26,21 @@ typedef struct frame {
   struct frame *next ; 
 } FRAME ;
 
-typedef struct env {
-  FRAME *frames ;
-} ENV ;
+typedef struct closure {
+  NODE *code ; 
+  FRAME *env ; 
+} CLOSURE ;
 
+typedef struct bb {
+  FRAME *frame_leader ;
+} BB ;
 
-VALUE* interpret(NODE*,ENV*);
-VALUE* interpret_(NODE*,ENV*);
+VALUE* interpret(NODE*,BB*);
+VALUE* interpret_(NODE*,BB*);
 void print_bindings(FRAME *);
-VALUE* find_name(TOKEN*,FRAME*);
-FRAME *find_frame(int,ENV*);
+VALUE* find_ident_value(TOKEN*,FRAME*);
+FRAME *find_frame(int,BB*);
 VALUE* assign_value(TOKEN*,FRAME*,VALUE*);
-VALUE* declare(TOKEN*,FRAME*);
+void declare(TOKEN*,FRAME*);
 
 #endif

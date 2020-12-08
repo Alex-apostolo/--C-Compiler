@@ -1,6 +1,5 @@
-int s = 69;
-void func(){return 0;}
-void func2(){return 2;}
-int p;
-int main(){}
-int pr;
+int x;
+int y = 5;
+int func() {return 0;}
+int main() {return 5;}
+int z = 5;

@@ -2,22 +2,22 @@
 #include "C.tab.h"
 #include <stdio.h>
 
-int last_frame_index = 0;
+int last_frame_index;
 
 /*Function responsible for initializing*/
-VALUE *interpret(NODE *term, ENV *env) {
+VALUE *interpret(NODE *term, BB *env) {
     // The first frame in the environment is the global frame
-    FRAME *global = env->frames;
+    FRAME *global = env->frame_leader;
     // Add global frame if it doesn't exist
     if (global == NULL) {
         global = calloc(1, sizeof(FRAME));
         global->index = last_frame_index;
-        env->frames = global;
+        env->frame_leader = global;
     }
     return interpret_(term, env);
 }
 
-VALUE *interpret_(NODE *term, ENV *env) {
+VALUE *interpret_(NODE *term, BB *env) {
     // initialize environment
 
     switch (term->type) {
@@ -46,25 +46,29 @@ VALUE *interpret_(NODE *term, ENV *env) {
         // Left child is an AST for Return type
         interpret_(term->left, env);
         // Right child is the Name and arguments
-        interpret_(term->right, env);
+        return interpret_(term->right, env);
         break;
-    case 'D':
-        // Left child is the Function definition
-        interpret_(term->left, env);
-        // Right child is the Function body
-        if (term->right != NULL) {
-            return interpret_(term->right, env);
-        } else {
-            return 0;
-        }
+    case 'D': {
+        // Creates new closure and assigns it to function defined
+        VALUE *new_value = calloc(1,sizeof(VALUE));
+        CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
+        new_closure->code = term->right;
+        new_closure->env = env->frame_leader;
+        new_value->v.closure = new_closure;
+        assign_value(interpret_(term->left, env), env->frame_leader, new_value);
+
+        // after calling the function make the environment concrete
         break;
+    }
     case 'F': {
-        // Left child is the Name of function
-        declare(interpret_(term->left, env), find_frame(last_frame_index, env));
         // Right child are the Arguments of function
         if (term->right != NULL) {
             interpret_(term->right, env);
         }
+        // Left child is the Name of function
+        TOKEN *t = interpret_(term->left, env);
+        declare(t, find_frame(last_frame_index, env));
+        return t;
         break;
     }
     case CONTINUE:
@@ -77,7 +81,8 @@ VALUE *interpret_(NODE *term, ENV *env) {
         if (term->left != NULL) {
             if (term->left->type == LEAF &&
                 term->left->left->type == IDENTIFIER) {
-                return find_name(interpret_(term->left, env), env->frames);
+                return find_ident_value(interpret_(term->left, env),
+                                 env->frame_leader);
             } else
                 return interpret_(term->left, env);
         } else {
@@ -86,8 +91,7 @@ VALUE *interpret_(NODE *term, ENV *env) {
         }
         break;
     case '~':
-        switch (term->left->type) {
-        case LEAF:
+        if (term->left->type == LEAF) {
             if (term->right->type == LEAF) {
                 // Right child is the variable name
                 declare(interpret_(term->right, env),
@@ -99,25 +103,9 @@ VALUE *interpret_(NODE *term, ENV *env) {
                         find_frame(last_frame_index, env));
                 interpret_(term->right, env);
             }
-            break;
-        case '~':
-            // interpret_ left sequence
+        } else {
             interpret_(term->left, env);
-            // Right will be a function or INT
-            if (term->right->type == 'D')
-                interpret_(term->right->left, env);
-            else
-                interpret_(term->right, env);
-            break;
-        case 'D':
-            // Left will be a function
-            interpret_(term->left->left, env);
-            // Right will be a function or INT
-            if (term->right->type == 'D')
-                interpret_(term->right->left, env);
-            else
-                interpret_(term->right, env);
-            break;
+            interpret_(term->right, env);
         }
         break;
     case ';':
@@ -128,7 +116,7 @@ VALUE *interpret_(NODE *term, ENV *env) {
         return interpret_(term->right, env);
         break;
     case '=':
-        assign_value(interpret_(term->left, env), env->frames,
+        assign_value(interpret_(term->left, env), env->frame_leader,
                      interpret_(term->right, env));
         break;
     case '+':
@@ -145,12 +133,12 @@ VALUE *interpret_(NODE *term, ENV *env) {
         int lval;
         int rval;
         if (term->left->left->type == IDENTIFIER)
-            lval = find_name(interpret_(term->left, env), env->frames);
+            lval = find_ident_value(interpret_(term->left, env), env->frame_leader);
         else
             lval = (int)interpret_(term->left, env);
 
         if (term->right->left->type == IDENTIFIER)
-            rval = find_name(interpret_(term->right, env), env->frames);
+            rval = find_ident_value(interpret_(term->right, env), env->frame_leader);
         else
             rval = (int)interpret_(term->right, env);
 
@@ -199,7 +187,7 @@ void print_bindings(FRAME *frame) {
     printf("\n*** END OF BINDING LIST ***");
 }
 
-VALUE *find_name(TOKEN *t, FRAME *frame) {
+VALUE *find_ident_value(TOKEN *t, FRAME *frame) {
     while (frame != NULL) {
         BINDING *bindings = frame->bindings;
         while (bindings != NULL) {
@@ -214,8 +202,8 @@ VALUE *find_name(TOKEN *t, FRAME *frame) {
     // error(" unbound variable ");
 }
 
-FRAME *find_frame(int index, ENV *env) {
-    FRAME *temp = env->frames;
+FRAME *find_frame(int index, BB *env) {
+    FRAME *temp = env->frame_leader;
     if (temp == NULL)
         fprintf(stderr,
                 "Environment is empty, could not find specified frame\n");
@@ -244,20 +232,31 @@ VALUE *assign_value(TOKEN *t, FRAME *frame, VALUE *value) {
     // error(" unbound variable");
 }
 
-VALUE *declare(TOKEN *identifier, FRAME *frame) {
+void declare(TOKEN *identifier, FRAME *frame) {
     BINDING *temp = frame->bindings;
     BINDING *new_bind = calloc(1, sizeof(BINDING));
     new_bind->name = identifier;
-    new_bind->val = (VALUE *)0;
+
     if (new_bind != 0) {
         if (temp == NULL) {
             frame->bindings = new_bind;
-            return new_bind->val;
+            return;
         }
         while (temp->next != NULL)
             temp = temp->next;
         temp->next = new_bind;
-        return new_bind->val;
     }
     // error (" binding allocation failed " );
 }
+
+// FRAME *extend_frame(FRAME *env, NODE *ids, NODE *args) {
+//     FRAME *newenv = make_frame(NULL, NULL); // note env = NULL
+//     BINDING *bindings = NULL;
+//     for (NODE *ip = ids,NODE *ap = args; (ip != NULL) && (ap != NULL); ip ->
+//     right, ap->right) {
+//         bindings = make_binding(ip -> left, interpret(ap->left,
+//         env),bindings)
+//     }
+//     newenv->bindings = bindings;
+//     return newenv;
+// }
