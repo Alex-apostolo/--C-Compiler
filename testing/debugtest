@@ -1,5 +1,8 @@
-int x;
-int y = 5;
-int func() {return 0;}
-int main() {return 5;}
-int z = 5;
+int func() {
+    int x = 5;
+    int func2() {
+        return 6;
+    }
+}
+int x = 6;
+int p = 32;

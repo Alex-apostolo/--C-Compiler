@@ -121,10 +121,7 @@ int main(int argc, char **argv) {
             printf("parse finished with %p\n", tree);
             print_tree(tree);
             tree = ans;
-            BB *env = malloc(sizeof(BB));
-            FRAME *main = malloc(sizeof(FRAME));
-            env->frame_leader = main;
-
+            ENV *env = calloc(1,sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
             printf("\nTerminated with exit code '%d'\n", exit_code);
             return exit_code;
@@ -190,10 +187,10 @@ int main(int argc, char **argv) {
         }
 
         if (interp == true) {
-            BB *env = calloc(1, sizeof(BB));
+            ENV *env = calloc(1, sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
             if (print_bind == TRUE)
-                print_bindings(env->frame_leader);
+                print_bindings(env->global);
             // Free all fields of env
             printf("\n\n\n### OUTPUT ###\n\n");
             printf("Terminated with exit code '%d'\n", exit_code);

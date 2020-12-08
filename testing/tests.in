@@ -16,3 +16,11 @@ int main() { int x = 53; return x+1;}
 %%
 int main() { int x = 1; x = x + 32; return x;}
 %%
+int func() {
+    int x = 5;
+    int func2() {
+        return 6;
+    }
+}
+int x = 6;
+int p = 32;

@@ -2,6 +2,8 @@
 #define __INTERPRETER_H
 #include "nodes.h"
 
+typedef struct stack STACK;
+
 typedef struct closure CLOSURE;
 
 typedef struct value {
@@ -23,7 +25,6 @@ typedef struct binding {
 typedef struct frame {
   int index;
   BINDING *bindings ;
-  struct frame *next ; 
 } FRAME ;
 
 typedef struct closure {
@@ -31,16 +32,12 @@ typedef struct closure {
   FRAME *env ; 
 } CLOSURE ;
 
-typedef struct bb {
-  FRAME *frame_leader ;
-} BB ;
+typedef struct env {
+  STACK *stack;
+  FRAME *global;
+} ENV ;
 
-VALUE* interpret(NODE*,BB*);
-VALUE* interpret_(NODE*,BB*);
+VALUE* interpret(NODE*,ENV*);
 void print_bindings(FRAME *);
-VALUE* find_ident_value(TOKEN*,FRAME*);
-FRAME *find_frame(int,BB*);
-VALUE* assign_value(TOKEN*,FRAME*,VALUE*);
-void declare(TOKEN*,FRAME*);
 
 #endif
