@@ -7,7 +7,7 @@ FRAME *extend_frame(FRAME *);
 VALUE *__interpret(NODE *, ENV *);
 VALUE *find_ident_value(TOKEN *, FRAME *);
 FRAME *find_frame(int, ENV *);
-VALUE *assign_value(TOKEN *, FRAME *, VALUE *);
+VALUE *assing_value(TOKEN *, FRAME *, VALUE *);
 void declare(TOKEN *, FRAME *);
 
 /*Function responsible for initializing*/
@@ -21,7 +21,7 @@ VALUE *interpret(NODE *term, ENV *env) {
     // Initiates global frame and saves it to stack
     __interpret(term, env);
 
-    // Swap Stack and Global Frames
+    // Pop global frame from Stack and set Stack to NULL
     env->global = pop(env->stack);
     env->stack = NULL;
 
@@ -29,9 +29,9 @@ VALUE *interpret(NODE *term, ENV *env) {
     BINDING *temp = env->global->bindings;
     while (temp != NULL) {
         if (strcmp(temp->name, "main")) {
-            // Stack starts off consisting only of the main frame
+            // Push main frame to stack
             FRAME *main_frame = extend_frame(env->global);
-            env->stack = main_frame;
+            push(env->stack,main_frame);
             __interpret(temp->val->v.closure->code, env);
         }
     }
@@ -85,7 +85,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
 
         closure->v.closure = new_closure;
         closure->type = FUNCTION;
-        assign_value(__interpret(term->left, env), env->stack, closure);
+        assing_value(__interpret(term->left, env), peek(env->stack), closure);
         break;
     }
     case 'F': {
@@ -142,7 +142,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         return __interpret(term->right, env);
         break;
     case '=':
-        assign_value(__interpret(term->left, env), env->stack,
+        assing_value(__interpret(term->left, env), peek(env->stack),
                      __interpret(term->right, env));
         break;
     case '+':
@@ -245,7 +245,7 @@ FRAME *find_frame(int index, ENV *env) {
     return NULL;
 }
 
-VALUE *assign_value(TOKEN *t, FRAME *frame, VALUE *value) {
+VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value) {
     if (frame != NULL) {
         BINDING *bindings = frame->bindings;
         while (bindings != NULL) {
@@ -276,9 +276,9 @@ void declare(TOKEN *identifier, FRAME *frame) {
     // error (" binding allocation failed " );
 }
 
-FRAME *extend_frame(FRAME *env) {
+FRAME *extend_frame(FRAME *frame) {
     FRAME *newenv = calloc(1, sizeof(FRAME));
-    BINDING *temp = env->bindings;
+    BINDING *temp = frame->bindings;
 
     while (temp != NULL) {
         TOKEN *new_name = calloc(1, sizeof(TOKEN));
@@ -292,19 +292,19 @@ FRAME *extend_frame(FRAME *env) {
         case CONSTANT:
             new_value->type = CONSTANT;
             new_value->v.integer = temp->val->v.integer;
-            assign_value(new_name, newenv, new_value);
+            assing_value(new_name, newenv, new_value);
             break;
         case STRING_LITERAL:
             new_value->type = STRING_LITERAL;
             strcpy(new_value->v.string, temp->val->v.string);
-            assign_value(new_name, newenv, new_value);
+            assing_value(new_name, newenv, new_value);
             break;
         case FUNCTION:
             new_value->type = FUNCTION;
             CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
             new_closure->code = temp->val->v.closure->code;
             new_closure->env = newenv;
-            assign_value(new_name, newenv, new_value);
+            assing_value(new_name, newenv, new_value);
             break;
         }
         temp = temp->next;
