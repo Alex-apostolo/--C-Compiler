@@ -1,5 +1,10 @@
 int main() {
-    int x = 35;
-    int y = x;
-    return y;
+    int sum(int a, int b){
+        return a + b;
+    }
+    int func(int c, int d) {
+        return c + d;
+    }
+    int y = sum(a = 5, b = 90);
+    return func(c = y, d = 35);
 }

@@ -271,6 +271,11 @@ VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
         BINDING *bindings = frame->bindings;
         while (bindings != NULL) {
             if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                if(value->type == IDENTIFIER) {
+                    TOKEN *token = calloc(1,sizeof(TOKEN));
+                    token->lexeme = value->v.string;
+                    bindings->val = find_ident_value(token,frame,env);
+                }else
                 bindings->val = value;
                 return bindings->val;
             }
@@ -281,6 +286,11 @@ VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
         BINDING *bindings = env->global->bindings;
         while (bindings != NULL) {
             if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                if(value->type == IDENTIFIER) {
+                    TOKEN *token = calloc(1,sizeof(TOKEN));
+                    token->lexeme = value->v.string;
+                    bindings->val = find_ident_value(token,frame,env);
+                }else
                 bindings->val = value;
                 return bindings->val;
             }
@@ -370,7 +380,6 @@ VALUE *execute(char *frame, ENV *env, int local, NODE *args) {
             // Run argument part of function
             if (temp->val->v.closure->params != NULL) {
                 __interpret(temp->val->v.closure->params, env);
-                print_bindings(peek(env->stack));
                 // run apply part of arguments
                 __interpret(args, env);
             }
