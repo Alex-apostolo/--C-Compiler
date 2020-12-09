@@ -5,8 +5,8 @@
 
 FRAME *extend_frame(FRAME *);
 VALUE *__interpret(NODE *, ENV *);
-VALUE *find_ident_value(TOKEN *, FRAME *);
-VALUE *assing_value(TOKEN *, FRAME *, VALUE *);
+VALUE *find_ident_value(TOKEN *, FRAME *, ENV *env);
+VALUE *assing_value(TOKEN *, FRAME *, VALUE *, ENV *env);
 void declare(TOKEN *, FRAME *);
 VALUE *execute(char *, ENV *, int);
 
@@ -56,6 +56,13 @@ VALUE *__interpret(NODE *term, ENV *env) {
         // Call function
         char *name = ((TOKEN *)__interpret(term->left,env))->lexeme;
         VALUE *result = execute(name, env, 1);
+        if(result->v.integer == -2) {
+            result = execute(name, env, 0);
+            if(result->v.integer == -2) {
+                printf("Error could not find function\n\n");
+                return -1;
+            }
+        }
         // Pop from frame from stack
         pop(env->stack);
         // Return result
@@ -83,7 +90,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
 
         closure->v.closure = new_closure;
         closure->type = FUNCTION;
-        assing_value(__interpret(term->left, env), peek(env->stack), closure);
+        assing_value(__interpret(term->left, env), peek(env->stack), closure, env);
         break;
     }
     case 'F': {
@@ -108,7 +115,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
             if (term->left->type == LEAF &&
                 term->left->left->type == IDENTIFIER) {
                 return find_ident_value(__interpret(term->left, env),
-                                        peek(env->stack));
+                                        peek(env->stack),env);
             } else
                 return __interpret(term->left, env);
         } else {
@@ -141,7 +148,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         break;
     case '=':
         assing_value(__interpret(term->left, env), peek(env->stack),
-                     __interpret(term->right, env));
+                     __interpret(term->right, env),env);
         break;
     case '+':
     case '-':
@@ -159,7 +166,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         if (term->left->left->type == IDENTIFIER)
             // PROBLEM HERE
             lval =
-                find_ident_value(__interpret(term->left, env), peek(env->stack))
+                find_ident_value(__interpret(term->left, env), peek(env->stack),env)
                     ->v.integer;
         else
             lval = __interpret(term->left, env)->v.integer;
@@ -167,7 +174,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         if (term->right->left->type == IDENTIFIER)
             // AND HERE
             rval = find_ident_value(__interpret(term->right, env),
-                                    peek(env->stack))
+                                    peek(env->stack),env)
                        ->v.integer;
         else
             rval = __interpret(term->right, env)->v.integer;
@@ -233,19 +240,28 @@ void print_bindings(FRAME *frame) {
     printf("\n*** END OF BINDING LIST ***\n\n\n");
 }
 
-VALUE *find_ident_value(TOKEN *t, FRAME *frame) {
+VALUE *find_ident_value(TOKEN *t, FRAME *frame, ENV *env) {
     BINDING *bindings = frame->bindings;
     while (bindings != NULL) {
         if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
-            VALUE *temp = bindings->val;
-            return temp;
+             return bindings->val;;
         }
         bindings = bindings->next;
     }
     // error(" unbound variable ");
+    if (env != NULL) {
+        BINDING *bindings = env->global->bindings;
+        while (bindings != NULL) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                return bindings->val;
+            }
+            bindings = bindings->next;
+        }
+    }
 }
 
-VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value) {
+VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
+    // Search the frame provided and then global
     if (frame != NULL) {
         BINDING *bindings = frame->bindings;
         while (bindings != NULL) {
@@ -256,7 +272,17 @@ VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value) {
             bindings = bindings->next;
         }
     }
-    // error(" unbound variable");
+    if (env != NULL) {
+        BINDING *bindings = env->global->bindings;
+        while (bindings != NULL) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                bindings->val = value;
+                return bindings->val;
+            }
+            bindings = bindings->next;
+        }
+    }
+    //error(" unbound variable");
 }
 
 void declare(TOKEN *identifier, FRAME *frame) {
@@ -295,12 +321,12 @@ FRAME *extend_frame(FRAME *frame) {
             case CONSTANT:
                 new_value->type = CONSTANT;
                 new_value->v.integer = temp->val->v.integer;
-                assing_value(new_name, newenv, new_value);
+                assing_value(new_name, newenv, new_value, NULL);
                 break;
             case STRING_LITERAL:
                 new_value->type = STRING_LITERAL;
                 strcpy(new_value->v.string, temp->val->v.string);
-                assing_value(new_name, newenv, new_value);
+                assing_value(new_name, newenv, new_value, NULL);
                 break;
             case FUNCTION:
                 new_value->type = FUNCTION;
@@ -308,7 +334,7 @@ FRAME *extend_frame(FRAME *frame) {
                 new_closure->code = temp->val->v.closure->code;
                 new_closure->env = newenv;
                 new_value->v.closure = new_closure;
-                assing_value(new_name, newenv, new_value);
+                assing_value(new_name, newenv, new_value, NULL);
                 break;
             }
         }
@@ -324,12 +350,11 @@ VALUE *execute(char *frame, ENV *env, int local) {
     while (temp != NULL) {
         if (strcmp(temp->name->lexeme, frame) == 0) {
             func_exists = 1;
-            // Push frame to stack
-            FRAME *frame = local ? extend_frame(peek(env->stack))
-                                 : extend_frame(env->global);
-            push(env->stack, frame);
+
+            FRAME *extension = local ? extend_frame(peek(env->stack)) : calloc(1,sizeof(FRAME));
+            push(env->stack, extension);
             if (temp->val->v.closure->code == NULL) {
-                fprintf(stderr, "Error function body cannot be empty\n");
+                fprintf(stderr, "Error function body cannot be empty\n\n");
                 VALUE *val = malloc(sizeof(VALUE));
                 val->type = CONSTANT;
                 val->v.integer = -1;
@@ -339,6 +364,11 @@ VALUE *execute(char *frame, ENV *env, int local) {
         }
         temp = temp->next;
     }
-    if (func_exists == 0)
-        fprintf(stderr, "Error '%s' function could not be located\n", frame);
+    if (func_exists == 0){
+        // fprintf(stderr, "Error '%s' function could not be located\n\n", frame);
+        VALUE *val = malloc(sizeof(VALUE));
+        val->type = CONSTANT;
+        val->v.integer = -2;
+        return val;
+    }
 }
