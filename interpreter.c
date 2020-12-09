@@ -8,6 +8,7 @@ VALUE *__interpret(NODE *, ENV *);
 VALUE *find_ident_value(TOKEN *, FRAME *);
 VALUE *assing_value(TOKEN *, FRAME *, VALUE *);
 void declare(TOKEN *, FRAME *);
+VALUE *execute(char *, ENV *, int);
 
 /*Function responsible for initializing*/
 VALUE *interpret(NODE *term, ENV *env) {
@@ -20,32 +21,11 @@ VALUE *interpret(NODE *term, ENV *env) {
     // Initiates global frame and saves it to stack
     __interpret(term, env);
 
-    // Pop global frame from Stack and set Stack to NULL
+    // Pop global frame from Stack
     env->global = pop(env->stack);
 
-    // Search for main and execute it
-    int main_exists = 0;
-    BINDING *temp = env->global->bindings;
-    while (temp != NULL) {
-        // strcmp not working
-        if (strcmp(temp->name->lexeme, "main") == 0) {
-            main_exists = 1;
-            // Push main frame to stack
-            FRAME *main_frame = extend_frame(env->global);
-            push(env->stack, main_frame);
-            if (temp->val->v.closure->code == NULL) {
-                fprintf(stderr, "Error, no return type for main\n");
-                VALUE *val = malloc(sizeof(VALUE));
-                val->type = CONSTANT;
-                val->v.integer = -1;
-                return val;
-            }
-            return __interpret(temp->val->v.closure->code, env);
-        }
-        temp = temp->next;
-    }
-    if (main_exists == 0)
-        fprintf(stderr, "Error Main function could not be located\n");
+    // Execute "main"
+    return execute("main", env, 0);
 }
 
 VALUE *__interpret(NODE *term, ENV *env) {
@@ -72,9 +52,16 @@ VALUE *__interpret(NODE *term, ENV *env) {
         string->v.string = term->left;
         return string;
     }
-    case APPLY:
-        // Process calling of functions
+    case APPLY: {
+        // Call function
+        VALUE *result =
+            execute(((TOKEN *)__interpret(term->left,env))->lexeme, env, 1);
+        // Pop from frame from stack
+        pop(env->stack);
+        // Return result
+        return result;
         break;
+    }
     case VOID:
     case FUNCTION:
     case INT:
@@ -236,6 +223,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
 }
 
 void print_bindings(FRAME *frame) {
+    // Make this print every frame in the environment
     printf("*** BINDING LIST ***\n\n");
     BINDING *temp = frame->bindings;
     while (temp != NULL) {
@@ -293,11 +281,13 @@ FRAME *extend_frame(FRAME *frame) {
     BINDING *temp = frame->bindings;
 
     while (temp != NULL) {
+        // Copy name of binding and declare it in newenv
         TOKEN *new_name = calloc(1, sizeof(TOKEN));
         char *temp_name = malloc(strlen(temp->name->lexeme) + 1);
         strcpy(temp_name, temp->name->lexeme);
         new_name->lexeme = temp_name;
         declare(new_name, newenv);
+
 
         VALUE *new_value = calloc(1, sizeof(VALUE));
         if (temp->val != NULL) {
@@ -317,6 +307,7 @@ FRAME *extend_frame(FRAME *frame) {
                 CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
                 new_closure->code = temp->val->v.closure->code;
                 new_closure->env = newenv;
+                new_value->v.closure = new_closure;
                 assing_value(new_name, newenv, new_value);
                 break;
             }
@@ -324,4 +315,30 @@ FRAME *extend_frame(FRAME *frame) {
         temp = temp->next;
     }
     return newenv;
+}
+
+VALUE *execute(char *frame, ENV *env, int local) {
+    // Search for frame and execute it
+    int func_exists = 0;
+    BINDING *temp = local ? peek(env->stack)->bindings : env->global->bindings;
+    while (temp != NULL) {
+        if (strcmp(temp->name->lexeme, frame) == 0) {
+            func_exists = 1;
+            // Push frame to stack
+            FRAME *frame = local ? extend_frame(peek(env->stack))
+                                 : extend_frame(env->global);
+            push(env->stack, frame);
+            if (temp->val->v.closure->code == NULL) {
+                fprintf(stderr, "Error function body cannot be empty\n");
+                VALUE *val = malloc(sizeof(VALUE));
+                val->type = CONSTANT;
+                val->v.integer = -1;
+                return val;
+            }
+            return __interpret(temp->val->v.closure->code, env);
+        }
+        temp = temp->next;
+    }
+    if (func_exists == 0)
+        fprintf(stderr, "Error '%s' function could not be located\n", frame);
 }

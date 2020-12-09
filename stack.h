@@ -5,7 +5,7 @@
 typedef struct stack {
 	int top;
 	unsigned capacity;
-	FRAME **array;
+	FRAME **list;
 }STACK;
 
 STACK *createStack(unsigned capacity);

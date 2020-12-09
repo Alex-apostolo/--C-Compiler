@@ -217,6 +217,7 @@ int main(int argc, char **argv) {
                 break;
             }
             printf("\n### END OF OUTPUT ###\n\n\n");
+            // Prints global frame bindings
             if (print_bind == TRUE)
                 print_bindings(env->global);
             switch(exit_code->type) {

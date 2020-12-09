@@ -1,4 +1,8 @@
-void func() {int y = 55; return 5;}
-int ap;
-int main() { int x = 53; return x+1;}
-int p = 4;
+int main() {
+    int x = 5;
+    int func() {
+        return 53;
+    }
+    x = func();
+    return x;
+}
