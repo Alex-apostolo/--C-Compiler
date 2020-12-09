@@ -54,8 +54,8 @@ VALUE *__interpret(NODE *term, ENV *env) {
     }
     case APPLY: {
         // Call function
-        VALUE *result =
-            execute(((TOKEN *)__interpret(term->left,env))->lexeme, env, 1);
+        char *name = ((TOKEN *)__interpret(term->left,env))->lexeme;
+        VALUE *result = execute(name, env, 1);
         // Pop from frame from stack
         pop(env->stack);
         // Return result
@@ -236,7 +236,7 @@ void print_bindings(FRAME *frame) {
 VALUE *find_ident_value(TOKEN *t, FRAME *frame) {
     BINDING *bindings = frame->bindings;
     while (bindings != NULL) {
-        if (bindings->name == t) {
+        if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
             VALUE *temp = bindings->val;
             return temp;
         }
@@ -249,7 +249,7 @@ VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value) {
     if (frame != NULL) {
         BINDING *bindings = frame->bindings;
         while (bindings != NULL) {
-            if (bindings->name == t) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
                 bindings->val = value;
                 return bindings->val;
             }

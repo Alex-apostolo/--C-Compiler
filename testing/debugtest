@@ -1,7 +1,8 @@
 int main() {
     int x = 5;
     int func() {
-        return 53;
+        x = 69;
+        return x;
     }
     x = func();
     return x;
