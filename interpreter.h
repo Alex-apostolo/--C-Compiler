@@ -23,7 +23,6 @@ typedef struct binding {
 } BINDING ;
 
 typedef struct frame {
-  int index;
   BINDING *bindings ;
 } FRAME ;
 

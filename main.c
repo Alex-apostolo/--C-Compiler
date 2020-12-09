@@ -123,8 +123,21 @@ int main(int argc, char **argv) {
             tree = ans;
             ENV *env = calloc(1,sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
-            printf("\nTerminated with exit code '%d'\n", exit_code);
-            return exit_code;
+            printf("Terminated with exit code ");
+            switch(exit_code->type) {
+                case CONSTANT:
+                printf("'%d'\n",exit_code->v.integer);
+                return exit_code->v.integer;
+                break;
+                case STRING_LITERAL:
+                printf("'%s'\n",exit_code->v.string);
+                return exit_code->v.string;
+                break;
+                case FUNCTION:
+                printf("func\n");
+                return FUNCTION;
+                break;
+            }
             break;
         case 'f':
             print_AST = true;
@@ -187,15 +200,36 @@ int main(int argc, char **argv) {
         }
 
         if (interp == true) {
+            printf("\n\n\n### OUTPUT ###\n\n");
             ENV *env = calloc(1, sizeof(ENV));
             VALUE *exit_code = interpret(tree, env);
+            // Free all fields of env
+            printf("Terminated with exit code ");
+            switch(exit_code->type) {
+                case CONSTANT:
+                printf("'%d'\n",exit_code->v.integer);
+                break;
+                case STRING_LITERAL:
+                printf("'%s'\n",exit_code->v.string);
+                break;
+                case FUNCTION:
+                printf("func\n");
+                break;
+            }
+            printf("\n### END OF OUTPUT ###\n\n\n");
             if (print_bind == TRUE)
                 print_bindings(env->global);
-            // Free all fields of env
-            printf("\n\n\n### OUTPUT ###\n\n");
-            printf("Terminated with exit code '%d'\n", exit_code);
-            printf("\n### END OF OUTPUT ###\n\n\n");
-            return exit_code;
+            switch(exit_code->type) {
+                case CONSTANT:
+                return exit_code->v.integer;
+                break;
+                case STRING_LITERAL:
+                return exit_code->v.string;
+                break;
+                case FUNCTION:
+                return FUNCTION;
+                break;
+            }
         }
 
         if (tac == true) {

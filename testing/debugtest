@@ -1,8 +1,1 @@
-int func() {
-    int x = 5;
-    int func2() {
-        return 6;
-    }
-}
-int x = 6;
-int p = 32;
+int main() { int x = 53; return x+1;}

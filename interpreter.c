@@ -1,12 +1,11 @@
-#include <stdio.h>
-#include "C.tab.h"
 #include "interpreter.h"
+#include "C.tab.h"
 #include "stack.h"
+#include <stdio.h>
 
 FRAME *extend_frame(FRAME *);
 VALUE *__interpret(NODE *, ENV *);
 VALUE *find_ident_value(TOKEN *, FRAME *);
-FRAME *find_frame(int, ENV *);
 VALUE *assing_value(TOKEN *, FRAME *, VALUE *);
 void declare(TOKEN *, FRAME *);
 
@@ -15,26 +14,38 @@ VALUE *interpret(NODE *term, ENV *env) {
     // Add global frame if it doesn't exist
     if (env->global == NULL)
         env->global = calloc(1, sizeof(FRAME));
-    env->stack = createStack(1024*1024);
-    push(env->stack,env->global);
+    env->stack = createStack(1024 * 1024);
+    push(env->stack, env->global);
 
     // Initiates global frame and saves it to stack
     __interpret(term, env);
 
     // Pop global frame from Stack and set Stack to NULL
     env->global = pop(env->stack);
-    env->stack = NULL;
 
     // Search for main and execute it
+    int main_exists = 0;
     BINDING *temp = env->global->bindings;
     while (temp != NULL) {
-        if (strcmp(temp->name, "main")) {
+        // strcmp not working
+        if (strcmp(temp->name->lexeme, "main") == 0) {
+            main_exists = 1;
             // Push main frame to stack
             FRAME *main_frame = extend_frame(env->global);
-            push(env->stack,main_frame);
-            __interpret(temp->val->v.closure->code, env);
+            push(env->stack, main_frame);
+            if (temp->val->v.closure->code == NULL) {
+                fprintf(stderr, "Error, no return type for main\n");
+                VALUE *val = malloc(sizeof(VALUE));
+                val->type = CONSTANT;
+                val->v.integer = -1;
+                return val;
+            }
+            return __interpret(temp->val->v.closure->code, env);
         }
+        temp = temp->next;
     }
+    if (main_exists == 0)
+        fprintf(stderr, "Error Main function could not be located\n");
 }
 
 VALUE *__interpret(NODE *term, ENV *env) {
@@ -110,7 +121,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
             if (term->left->type == LEAF &&
                 term->left->left->type == IDENTIFIER) {
                 return find_ident_value(__interpret(term->left, env),
-                                        env->stack);
+                                        peek(env->stack));
             } else
                 return __interpret(term->left, env);
         } else {
@@ -122,11 +133,11 @@ VALUE *__interpret(NODE *term, ENV *env) {
         if (term->left->type == LEAF) {
             if (term->right->type == LEAF) {
                 // Right child is the variable name
-                declare(__interpret(term->right, env),peek(env->stack));
+                declare(__interpret(term->right, env), peek(env->stack));
             } else {
                 // Right child is the AST "=" and we declare the variable before
                 // assigning
-                declare(__interpret(term->right->left, env),peek(env->stack));
+                declare(__interpret(term->right->left, env), peek(env->stack));
                 __interpret(term->right, env);
             }
         } else {
@@ -159,41 +170,56 @@ VALUE *__interpret(NODE *term, ENV *env) {
         int lval;
         int rval;
         if (term->left->left->type == IDENTIFIER)
-            lval = find_ident_value(__interpret(term->left, env),
-                                    env->stack);
+        // PROBLEM HERE
+            lval = find_ident_value(__interpret(term->left, env), peek(env->stack))->v.integer;
         else
-            lval = (int)__interpret(term->left, env);
+            lval = __interpret(term->left, env)->v.integer;
 
         if (term->right->left->type == IDENTIFIER)
-            rval = find_ident_value(__interpret(term->right, env),
-                                    env->stack);
+        // AND HERE
+            rval = find_ident_value(__interpret(term->right, env), peek(env->stack))->v.integer;
         else
-            rval = (int)__interpret(term->right, env);
+            rval = __interpret(term->right, env)->v.integer;
+
+        VALUE *exit_term = calloc(1, sizeof(VALUE));
+        exit_term->type = CONSTANT;
 
         switch (term->type) {
         case '+':
-            return lval + rval;
+            exit_term->v.integer = lval + rval;
+            break;
         case '-':
-            return lval - rval;
+            exit_term->v.integer = lval - rval;
+            break;
         case '*':
-            return lval * rval;
+            exit_term->v.integer = lval * rval;
+            break;
         case '/':
-            return lval / rval;
+            exit_term->v.integer = lval / rval;
+            break;
         case '%':
-            return lval % rval;
+            exit_term->v.integer = lval % rval;
+            break;
         case '>':
-            return lval > rval;
+            exit_term->v.integer = lval > rval;
+            break;
         case '<':
-            return lval < rval;
+            exit_term->v.integer = lval < rval;
+            break;
         case NE_OP:
-            return lval != rval;
+            exit_term->v.integer = lval != rval;
+            break;
         case EQ_OP:
-            return lval == rval;
+            exit_term->v.integer = lval == rval;
+            break;
         case LE_OP:
-            return lval <= rval;
+            exit_term->v.integer = lval <= rval;
+            break;
         case GE_OP:
-            return lval >= rval;
+            exit_term->v.integer = lval >= rval;
+            break;
         }
+        return exit_term;
         break;
     }
     case IF:
@@ -206,43 +232,25 @@ VALUE *__interpret(NODE *term, ENV *env) {
 }
 
 void print_bindings(FRAME *frame) {
-    printf("\n\n\n*** BINDING LIST ***\n\n");
+    printf("*** BINDING LIST ***\n\n");
     BINDING *temp = frame->bindings;
     while (temp != NULL) {
         printf("%s\n", temp->name->lexeme);
         temp = temp->next;
     }
-    printf("\n*** END OF BINDING LIST ***");
+    printf("\n*** END OF BINDING LIST ***\n\n\n");
 }
 
 VALUE *find_ident_value(TOKEN *t, FRAME *frame) {
-    while (frame != NULL) {
-        BINDING *bindings = frame->bindings;
-        while (bindings != NULL) {
-            if (bindings->name == t) {
-                VALUE *temp = bindings->val;
-                return temp;
-            }
-            bindings = bindings->next;
-        }
-        // frame = frame->next;
-    }
-    // error(" unbound variable ");
-}
-
-FRAME *find_frame(int index, ENV *env) {
-    FRAME *temp = env->stack;
-    if (temp == NULL)
-        fprintf(stderr,
-                "Environment is empty, could not find specified frame\n");
-    while (temp != NULL) {
-        if (temp->index == index) {
+    BINDING *bindings = frame->bindings;
+    while (bindings != NULL) {
+        if (bindings->name == t) {
+            VALUE *temp = bindings->val;
             return temp;
         }
-        // temp = temp->next;
+        bindings = bindings->next;
     }
-    fprintf(stderr, "Could not find frame\n");
-    return NULL;
+    // error(" unbound variable ");
 }
 
 VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value) {
@@ -311,14 +319,3 @@ FRAME *extend_frame(FRAME *frame) {
     }
     return newenv;
 }
-// FRAME *extend_frame(FRAME *env, NODE *ids, NODE *args) {
-//     FRAME *newenv = make_frame(NULL, NULL); // note env = NULL
-//     BINDING *bindings = NULL;
-//     for (NODE *ip = ids,NODE *ap = args; (ip != NULL) && (ap != NULL); ip ->
-//     right, ap->right) {
-//         bindings = make_binding(ip -> left, interpret(ap->left,
-//         env),bindings)
-//     }
-//     newenv->bindings = bindings;
-//     return newenv;
-// }

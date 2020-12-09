@@ -8,7 +8,7 @@ rm $RESULT
 a=1
 printf "Start Testing at: "
 date
-printf "\nSTART OF OUTPUT\n\n"
+printf "\n### START OF OUTPUT ###\n\n"
 while read line
 do 
 if [ "$line" != "%%" ] 
@@ -21,9 +21,11 @@ echo $str >> $RESULT
 a=$((a+1))
 fi
 done < $TESTSFILE
-printf "\nEND OF OUTPUT\n\n***DIFFERENCES***\n\n"
+
+printf "\n### END OF OUTPUT ###\n\n*** DIFFERENCES ***\n\n"
 
 diff $RESULT $SOLPATH
+
 if [ $? = 0 ]
     then 
     printf "All tests passed successfully!!!\n\n"
