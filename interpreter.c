@@ -164,7 +164,6 @@ VALUE *__interpret(NODE *term, ENV *env) {
         int lval;
         int rval;
         if (term->left->left->type == IDENTIFIER)
-            // PROBLEM HERE
             lval =
                 find_ident_value(__interpret(term->left, env), peek(env->stack),env)
                     ->v.integer;
@@ -172,7 +171,6 @@ VALUE *__interpret(NODE *term, ENV *env) {
             lval = __interpret(term->left, env)->v.integer;
 
         if (term->right->left->type == IDENTIFIER)
-            // AND HERE
             rval = find_ident_value(__interpret(term->right, env),
                                     peek(env->stack),env)
                        ->v.integer;

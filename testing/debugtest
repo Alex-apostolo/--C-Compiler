@@ -1,8 +1,4 @@
 int a = 2;
-int third() {
-    int d = 3;
-    return a + b + c + d;
-}
 int main() {
     int first() {
         int b = 1;
@@ -12,6 +8,10 @@ int main() {
             third();
         }
         return second();
+    }
+    int third() {
+        int d = 3;
+        return a + b + c + d;
     }
     return first();
 }
