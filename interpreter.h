@@ -27,6 +27,7 @@ typedef struct frame {
 } FRAME ;
 
 typedef struct closure {
+  NODE *params ;
   NODE *code ; 
   FRAME *env ; 
 } CLOSURE ;

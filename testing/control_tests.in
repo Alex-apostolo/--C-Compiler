@@ -37,3 +37,12 @@ int main() {
     }
     return first();
 }
+
+TEST 12:
+
+int main() {
+    int func(int a, int b) {
+        return a + b;
+    }
+    return func(a = 5 + 9,b = 8 - 4);
+}

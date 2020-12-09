@@ -1,17 +1,5 @@
-int a = 2;
 int main() {
-    int first() {
-        int b = 1;
-
-        int second() {
-            int c = 2;
-            third();
-        }
-        return second();
-    }
-    int third() {
-        int d = 3;
-        return a + b + c + d;
-    }
-    return first();
+    int x = 35;
+    int y = x;
+    return y;
 }
