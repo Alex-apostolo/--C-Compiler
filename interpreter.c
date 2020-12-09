@@ -170,14 +170,18 @@ VALUE *__interpret(NODE *term, ENV *env) {
         int lval;
         int rval;
         if (term->left->left->type == IDENTIFIER)
-        // PROBLEM HERE
-            lval = find_ident_value(__interpret(term->left, env), peek(env->stack))->v.integer;
+            // PROBLEM HERE
+            lval =
+                find_ident_value(__interpret(term->left, env), peek(env->stack))
+                    ->v.integer;
         else
             lval = __interpret(term->left, env)->v.integer;
 
         if (term->right->left->type == IDENTIFIER)
-        // AND HERE
-            rval = find_ident_value(__interpret(term->right, env), peek(env->stack))->v.integer;
+            // AND HERE
+            rval = find_ident_value(__interpret(term->right, env),
+                                    peek(env->stack))
+                       ->v.integer;
         else
             rval = __interpret(term->right, env)->v.integer;
 
@@ -296,24 +300,26 @@ FRAME *extend_frame(FRAME *frame) {
         declare(new_name, newenv);
 
         VALUE *new_value = calloc(1, sizeof(VALUE));
-        switch (temp->val->type) {
-        case CONSTANT:
-            new_value->type = CONSTANT;
-            new_value->v.integer = temp->val->v.integer;
-            assing_value(new_name, newenv, new_value);
-            break;
-        case STRING_LITERAL:
-            new_value->type = STRING_LITERAL;
-            strcpy(new_value->v.string, temp->val->v.string);
-            assing_value(new_name, newenv, new_value);
-            break;
-        case FUNCTION:
-            new_value->type = FUNCTION;
-            CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
-            new_closure->code = temp->val->v.closure->code;
-            new_closure->env = newenv;
-            assing_value(new_name, newenv, new_value);
-            break;
+        if (temp->val != NULL) {
+            switch (temp->val->type) {
+            case CONSTANT:
+                new_value->type = CONSTANT;
+                new_value->v.integer = temp->val->v.integer;
+                assing_value(new_name, newenv, new_value);
+                break;
+            case STRING_LITERAL:
+                new_value->type = STRING_LITERAL;
+                strcpy(new_value->v.string, temp->val->v.string);
+                assing_value(new_name, newenv, new_value);
+                break;
+            case FUNCTION:
+                new_value->type = FUNCTION;
+                CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
+                new_closure->code = temp->val->v.closure->code;
+                new_closure->env = newenv;
+                assing_value(new_name, newenv, new_value);
+                break;
+            }
         }
         temp = temp->next;
     }
