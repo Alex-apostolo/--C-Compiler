@@ -243,10 +243,9 @@ VALUE *__interpret(NODE *term, ENV *env) {
     }
     case IF:{
         // Making symbols for true and else didn't work
-         NODE *antecedent = term->left;
-        int has_else = strcmp(((TOKEN*)term->right)->lexeme, "else") == 0;
-        NODE *consequent = has_else ? term->right->left : term->right;
-        NODE *alternate = has_else ? NULL : term->right->right;
+        NODE *antecedent = term->left;
+        NODE *consequent = term->right->type == ELSE ? term->right->left : term->right;
+        NODE *alternate = term->right->type == ELSE ? term->right->right : NULL;
 
         VALUE *result = __interpret(antecedent,env);
         if(result->v.boolean != 1) {
@@ -415,7 +414,7 @@ VALUE *execute(char *frame, ENV *env, int local, NODE *args) {
             if (temp->val->v.closure->params != NULL) {
                 __interpret(temp->val->v.closure->params, env);
                 // run apply part of arguments
-                __interpret(args, env);
+                if(args != NULL) __interpret(args, env);
             }
             // Run main part of function
             return __interpret(temp->val->v.closure->code, env);

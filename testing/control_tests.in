@@ -58,3 +58,21 @@ int main() {
     }
     return func(c = sum(a = 5, b = 90), d = 35);
 }
+
+TEST 14:
+
+int main() {
+    int x = 69;
+    if(x > 100) {
+        x = 0;
+        x = x + 5;
+        print("hello");
+    }else if((x * 2) < 100){
+        x = 135;
+    }else if(x >= 69){
+        x = 123;
+    }else {
+        x = 456;
+    }
+    return x;
+}
