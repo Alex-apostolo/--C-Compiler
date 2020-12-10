@@ -2,12 +2,17 @@
 #define __INTERPRETER_H
 #include "nodes.h"
 
+typedef struct stack STACK;
+
+typedef struct closure CLOSURE;
+
 typedef struct value {
   int type ;
   union {
     int integer ;
     int boolean ; 
     char * string ;
+    CLOSURE *closure;
   } v;
 } VALUE; 
 
@@ -19,17 +24,20 @@ typedef struct binding {
 
 typedef struct frame {
   BINDING *bindings ;
-  struct frame *next ; 
 } FRAME ;
 
+typedef struct closure {
+  NODE *params ;
+  NODE *code ; 
+  FRAME *env ; 
+} CLOSURE ;
+
 typedef struct env {
-  FRAME *frames ;
+  STACK *stack;
+  FRAME *global;
 } ENV ;
 
-
 VALUE* interpret(NODE*,ENV*);
-VALUE* find_name(TOKEN*,FRAME*);
-VALUE* assign_value(TOKEN*,FRAME*,VALUE*);
-VALUE* declare(TOKEN*,FRAME*);
+void print_bindings(FRAME *);
 
 #endif

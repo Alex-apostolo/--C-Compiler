@@ -1,4 +1,4 @@
-1: Terminates with -> 0
+1: Terminates with -> 255
 2: Terminates with -> 53
 3: Terminates with -> UNDEFINED
 4: Terminates with -> 5
@@ -7,3 +7,7 @@
 7: Terminates with -> 67
 8: Terminates with -> 54
 9: Terminates with -> 33
+10: Terminates with -> 5
+11: Terminates with -> 8
+12: Terminates with -> 18
+13: Terminates with -> 130

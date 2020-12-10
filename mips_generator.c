@@ -2,7 +2,7 @@
 #include "tac_generator.h"
 #include <stdio.h>
 #include <stdlib.h>
-#define OUTPUT "mips.s"
+#define OUTPUT "result.s"
 
 void mips_generator(TAC *seq) {
     if (seq == NULL)

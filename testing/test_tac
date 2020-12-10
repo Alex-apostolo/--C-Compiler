@@ -13,7 +13,7 @@ if [ "$line" != "%%" ]
 then
 echo -n $line > $FILE
 $MYCC -t $FILE
-
+printf "\n"
 a=$((a+1))
 fi
 done < $TESTSFILE

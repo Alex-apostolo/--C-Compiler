@@ -1,5 +1,5 @@
-OBJS = lex.yy.o C.tab.o symbol_table.o nodes.o interpreter.o tac_generator.o mips_generator.o main.o
-SRCS = lex.yy.c C.tab.c symbol_table.c nodes.c interpreter.c tac_generator.c mips_generator.c main.c
+OBJS = lex.yy.o C.tab.o symbol_table.o nodes.o stack.o interpreter.o tac_generator.o mips_generator.o main.o
+SRCS = lex.yy.c C.tab.c symbol_table.c nodes.c stack.c interpreter.c tac_generator.c mips_generator.c main.c
 CC = gcc
 
 all:	mycc

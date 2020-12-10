@@ -1,153 +1,405 @@
-#include "C.tab.h"
-#include <stdio.h>
 #include "interpreter.h"
+#include "C.tab.h"
+#include "stack.h"
+#include <stdio.h>
 
-VALUE* interpret(NODE *term, ENV *env) {
-  //initialize environment
+FRAME *extend_frame(FRAME *);
+VALUE *__interpret(NODE *, ENV *);
+VALUE *find_ident_value(TOKEN *, FRAME *, ENV *env);
+VALUE *assing_value(TOKEN *, FRAME *, VALUE *, ENV *env);
+void declare(TOKEN *, FRAME *);
+VALUE *execute(char *, ENV *, int, NODE *);
+VALUE *printfunc(VALUE *);
 
-  switch(term->type) {
+/*Function responsible for initializing*/
+VALUE *interpret(NODE *term, ENV *env) {
+    // Add global frame if it doesn't exist
+    if (env->global == NULL)
+        env->global = calloc(1, sizeof(FRAME));
+    env->stack = createStack(1024 * 1024);
+    push(env->stack, env->global);
+
+    // Initiates global frame and saves it to stack
+    __interpret(term, env);
+
+    // Pop global frame from Stack
+    env->global = pop(env->stack);
+
+    // Execute "main"
+    // include args
+    return execute("main", env, 0, NULL);
+}
+
+VALUE *__interpret(NODE *term, ENV *env) {
+    switch (term->type) {
     case LEAF:
-      //Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
-      return interpret(term->left,env); 
-      break;
+        // Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
+        return __interpret(term->left, env);
+        break;
     case IDENTIFIER:
-      return term;
-      break;
-    case CONSTANT:
-      //Term holds its value on the right child
-      return term->right;
-      break;
-    case STRING_LITERAL:
-      //Term holds its value on the left child
-      return term->left;
-    case APPLY:
-      //Process calling of functions
-      break;
-    case VOID: case FUNCTION: case INT:
-      break;
+        return term;
+        break;
+    case CONSTANT: {
+        // Term holds its value on the right child
+        VALUE *constant = calloc(1, sizeof(VALUE));
+        constant->type = CONSTANT;
+        constant->v.integer = term->right;
+        return constant;
+        break;
+    }
+    case STRING_LITERAL: {
+        // Term holds its value on the left child
+        VALUE *string = calloc(1, sizeof(VALUE));
+        string->type = STRING_LITERAL;
+        string->v.string = term->left;
+        return string;
+    }
+    case APPLY: {
+        // Call function
+        char *name = ((TOKEN *)__interpret(term->left, env))->lexeme;
+        if(strcmp(name,"print") == 0) {
+            VALUE *res = __interpret(term->right,env);
+            printf(res->v.string);
+            return res;
+        } 
+        VALUE *result = execute(name, env, 1, term->right);
+        if (result->v.integer == -2) {
+            result = execute(name, env, 0, term->right);
+            if (result->v.integer == -2) {
+                printf("Error could not find function\n\n");
+                return -1;
+            }
+        }
+        // Pop from frame from stack
+        pop(env->stack);
+        // Return result
+        return result;
+        break;
+    }
+    case VOID:
+    case FUNCTION:
+    case INT:
+        break;
     case 'd':
-      //Left child is an AST for Return type
-      interpret(term->left,env);
-      //Right child is the Name and arguments
-      interpret(term->right,env);
-      break;
-    case 'D': 
-      //Left child is the Function definition
-      interpret(term->left,env);
-      //Right child is the Function body
-      if(term->right != NULL) {
-        return interpret(term->right,env);
-      } else {
-        return 0;
-      }
-      break;
-    case 'F':
-      //Left child is the Name of function
-      declare(interpret(term->left,env),env->frames);
-      //Right child are the Arguments of function 
-      if(term->right != NULL) {
-        interpret(term->right,env);
-      }
-      break;
-    case CONTINUE: case BREAK:
-      break;
+        // Left child is an AST for Return type
+        __interpret(term->left, env);
+        // Right child is the Name and arguments
+        return __interpret(term->right, env);
+        break;
+    case 'D': {
+        // Creates new closure and assigns it to function defined
+        // check if they are fine
+        VALUE *closure = calloc(1, sizeof(VALUE));
+
+        CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
+        new_closure->code = term->right;
+        new_closure->env = env->stack;
+
+        closure->v.closure = new_closure;
+        closure->type = FUNCTION;
+        closure->v.closure->params = term->left->right->right;
+        assing_value(__interpret(term->left, env), peek(env->stack), closure,
+                     env);
+        break;
+    }
+    case 'F': {
+        // Right child are the Arguments of function
+        // if (term->right != NULL) {
+        //     __interpret(term->right, env);
+        // }
+        // Left child is the Name of function
+        TOKEN *t = __interpret(term->left, env);
+        declare(t, peek(env->stack));
+        return t;
+        break;
+    }
+    case ',':
+        __interpret(term->right, env);
+        __interpret(term->left, env);
+    case CONTINUE:
+    case BREAK:
+        break;
     case RETURN:
-      //Left child is an AST of the expression whose value is to be returned
-      // TODO: handle the case where left child is identifier and the case for everything else
-      if(term->left != NULL) {
-        if(term->left->type == LEAF && term->left->left->type == IDENTIFIER) {
-          return find_name(interpret(term->left,env),env->frames);
-        } else 
-          return interpret(term->left,env); 
-      } else{
-        // TODO: throw an error
-        printf("Error no return type\n");
-      }
-      break;
+        // Left child is an AST of the expression whose value is to be returned
+        // TODO: handle the case where left child is identifier and the case for
+        // everything else
+        if (term->left != NULL) {
+            if (term->left->type == LEAF &&
+                term->left->left->type == IDENTIFIER) {
+                return find_ident_value(__interpret(term->left, env),
+                                        peek(env->stack), env);
+            } else
+                return __interpret(term->left, env);
+        } else {
+            // TODO: throw an error
+            printf("Error no return type\n");
+        }
+        break;
     case '~':
-      //Left child is the type 
-      interpret(term->left,env);
-      //Right child is the variable name
-      if(term->right->type == LEAF){
-        declare(interpret(term->right,env),env->frames);
-      } else {
-        //Right child is the AST "=" and we declare the variable before assigning
-        declare(interpret(term->right->left,env),env->frames);
-        interpret(term->right,env);
-      }
-      break;
+        if (term->left->type == LEAF) {
+            if (term->right->type == LEAF) {
+                // Right child is the variable name
+                declare(__interpret(term->right, env), peek(env->stack));
+            } else {
+                // Right child is the AST "=" and we declare the variable before
+                // assigning
+                declare(__interpret(term->right->left, env), peek(env->stack));
+                __interpret(term->right, env);
+            }
+        } else {
+            __interpret(term->left, env);
+            __interpret(term->right, env);
+        }
+        break;
     case ';':
-      //Left child is the first item or a sequence; returned values are ignored
-      interpret(term->left,env);
-      //Right child is the last item and also the return value
-      return interpret(term->right,env);
-      break;
+        // Left child is the first item or a sequence; returned values are
+        // ignored
+        __interpret(term->left, env);
+        // Right child is the last item and also the return value
+        return __interpret(term->right, env);
+        break;
     case '=':
-      assign_value(interpret(term->left,env),env->frames,interpret(term->right,env));
-      break;
-    case '+': case '-': case '*': case '/': case '%': case '>': case '<': case NE_OP: case EQ_OP: case LE_OP: case GE_OP:
-      {
+        assing_value(__interpret(term->left, env), peek(env->stack),
+                     __interpret(term->right, env), env);
+        break;
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '%':
+    case '>':
+    case '<':
+    case NE_OP:
+    case EQ_OP:
+    case LE_OP:
+    case GE_OP: {
         int lval;
         int rval;
-        if(term->left->left->type == IDENTIFIER) 
-          lval = find_name(interpret(term->left,env), env->frames);
-        else lval = (int)interpret(term->left,env);
+        if (term->left->left->type == IDENTIFIER)
+            lval = find_ident_value(__interpret(term->left, env),
+                                    peek(env->stack), env)
+                       ->v.integer;
+        else
+            lval = __interpret(term->left, env)->v.integer;
 
-        if(term->right->left->type == IDENTIFIER) 
-          rval = find_name(interpret(term->right,env), env->frames);
-        else rval = (int)interpret(term->right,env);
-        
-        return lval + rval; 
+        if (term->right->left->type == IDENTIFIER)
+            rval = find_ident_value(__interpret(term->right, env),
+                                    peek(env->stack), env)
+                       ->v.integer;
+        else
+            rval = __interpret(term->right, env)->v.integer;
+
+        VALUE *exit_term = calloc(1, sizeof(VALUE));
+        exit_term->type = CONSTANT;
+
+        switch (term->type) {
+        case '+':
+            exit_term->v.integer = lval + rval;
+            break;
+        case '-':
+            exit_term->v.integer = lval - rval;
+            break;
+        case '*':
+            exit_term->v.integer = lval * rval;
+            break;
+        case '/':
+            exit_term->v.integer = lval / rval;
+            break;
+        case '%':
+            exit_term->v.integer = lval % rval;
+            break;
+        case '>':
+            exit_term->v.integer = lval > rval;
+            break;
+        case '<':
+            exit_term->v.integer = lval < rval;
+            break;
+        case NE_OP:
+            exit_term->v.integer = lval != rval;
+            break;
+        case EQ_OP:
+            exit_term->v.integer = lval == rval;
+            break;
+        case LE_OP:
+            exit_term->v.integer = lval <= rval;
+            break;
+        case GE_OP:
+            exit_term->v.integer = lval >= rval;
+            break;
+        }
+        return exit_term;
         break;
-      }
+    }
     case IF:
-      break;
+        break;
     case WHILE:
-      break;
+        break;
     default:
-      break;
-  }
-}
-
-VALUE* find_name(TOKEN* t ,FRAME* frame) {
-  while ( frame != NULL ) {
-    BINDING * bindings = frame -> bindings ;
-    while ( bindings != NULL ) {
-      if ( bindings->name == t){
-        VALUE *temp = bindings->val;
-        return temp;
-      } 
-      bindings = bindings -> next ;
+        break;
     }
-    frame = frame -> next ;
-  }
-  //error(" unbound variable ");
 }
 
-VALUE* assign_value(TOKEN* t ,FRAME* frame ,VALUE* value) {
-  while ( frame != NULL ) {
-    BINDING * bindings = frame -> bindings ;
-    while ( bindings != NULL ) {
-      if ( bindings -> name == t){
-        bindings->val = value; 
-        return value;
-      }
-      bindings = bindings -> next ;
+void print_bindings(FRAME *frame) {
+    // Make this print every frame in the environment
+    printf("*** BINDING LIST ***\n\n");
+    BINDING *temp = frame->bindings;
+    while (temp != NULL) {
+        printf("%s\n", temp->name->lexeme);
+        temp = temp->next;
     }
-    frame = frame -> next ;
-  }
-  //error(" unbound variable");
+    printf("\n*** END OF BINDING LIST ***\n\n\n");
 }
 
-VALUE* declare( TOKEN * x , FRAME * frame ) {
-  BINDING * bindings = frame -> bindings ;
-  BINDING * new_bind = malloc(sizeof(BINDING));
-  if ( new_bind !=0) { 
-    new_bind -> name = x;
-    new_bind -> val =( VALUE *)0;
-    new_bind -> next = bindings ;
-    frame -> bindings = new_bind ;
-    return ( VALUE *)0; 
-  }
-  //error (" binding allocation failed " );
+VALUE *find_ident_value(TOKEN *t, FRAME *frame, ENV *env) {
+    BINDING *bindings = frame->bindings;
+    while (bindings != NULL) {
+        if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+            return bindings->val;
+        }
+        bindings = bindings->next;
+    }
+    // error(" unbound variable ");
+    if (env != NULL) {
+        BINDING *bindings = env->global->bindings;
+        while (bindings != NULL) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                return bindings->val;
+            }
+            bindings = bindings->next;
+        }
+    }
+}
+
+VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
+    // if its an identifier then take its value
+    // Search the frame provided and then global
+    if (frame != NULL) {
+        BINDING *bindings = frame->bindings;
+        while (bindings != NULL) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                if(value->type == IDENTIFIER) {
+                    TOKEN *token = calloc(1,sizeof(TOKEN));
+                    token->lexeme = value->v.string;
+                    bindings->val = find_ident_value(token,frame,env);
+                }else
+                bindings->val = value;
+                return bindings->val;
+            }
+            bindings = bindings->next;
+        }
+    }
+    if (env != NULL) {
+        BINDING *bindings = env->global->bindings;
+        while (bindings != NULL) {
+            if (strcmp(bindings->name->lexeme, t->lexeme) == 0) {
+                if(value->type == IDENTIFIER) {
+                    TOKEN *token = calloc(1,sizeof(TOKEN));
+                    token->lexeme = value->v.string;
+                    bindings->val = find_ident_value(token,frame,env);
+                }else
+                bindings->val = value;
+                return bindings->val;
+            }
+            bindings = bindings->next;
+        }
+    }
+    // error(" unbound variable");
+}
+
+void declare(TOKEN *identifier, FRAME *frame) {
+    BINDING *temp = frame->bindings;
+    BINDING *new_bind = calloc(1, sizeof(BINDING));
+    new_bind->name = identifier;
+
+    if (new_bind != 0) {
+        if (temp == NULL) {
+            frame->bindings = new_bind;
+            return;
+        }
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = new_bind;
+    }
+    // error (" binding allocation failed " );
+}
+
+// Makes a deep copy of a frame
+FRAME *extend_frame(FRAME *frame) {
+    FRAME *newenv = calloc(1, sizeof(FRAME));
+    BINDING *temp = frame->bindings;
+
+    while (temp != NULL) {
+        // Copy name of binding and declare it in newenv
+        TOKEN *new_name = calloc(1, sizeof(TOKEN));
+        char *temp_name = malloc(strlen(temp->name->lexeme) + 1);
+        strcpy(temp_name, temp->name->lexeme);
+        new_name->lexeme = temp_name;
+        declare(new_name, newenv);
+
+        VALUE *new_value = calloc(1, sizeof(VALUE));
+        if (temp->val != NULL) {
+            switch (temp->val->type) {
+            case CONSTANT:
+                new_value->type = CONSTANT;
+                new_value->v.integer = temp->val->v.integer;
+                assing_value(new_name, newenv, new_value, NULL);
+                break;
+            case STRING_LITERAL:
+                new_value->type = STRING_LITERAL;
+                strcpy(new_value->v.string, temp->val->v.string);
+                assing_value(new_name, newenv, new_value, NULL);
+                break;
+            case FUNCTION:
+                new_value->type = FUNCTION;
+                CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
+                new_closure->code = temp->val->v.closure->code;
+                new_closure->params = temp->val->v.closure->params;
+                new_closure->env = newenv;
+                new_value->v.closure = new_closure;
+                assing_value(new_name, newenv, new_value, NULL);
+                break;
+            }
+        }
+        temp = temp->next;
+    }
+    return newenv;
+}
+
+VALUE *execute(char *frame, ENV *env, int local, NODE *args) {
+    // Search for frame and execute it
+    int func_exists = 0;
+    BINDING *temp = local ? peek(env->stack)->bindings : env->global->bindings;
+    while (temp != NULL) {
+        if (strcmp(temp->name->lexeme, frame) == 0) {
+            func_exists = 1;
+
+            FRAME *extension = local ? extend_frame(peek(env->stack))
+                                     : calloc(1, sizeof(FRAME));
+            push(env->stack, extension);
+            if (temp->val->v.closure->code == NULL) {
+                fprintf(stderr, "Error function body cannot be empty\n\n");
+                VALUE *val = malloc(sizeof(VALUE));
+                val->type = CONSTANT;
+                val->v.integer = -1;
+                return val;
+            }
+            // Run argument part of function
+            if (temp->val->v.closure->params != NULL) {
+                __interpret(temp->val->v.closure->params, env);
+                // run apply part of arguments
+                __interpret(args, env);
+            }
+            // Run main part of function
+            return __interpret(temp->val->v.closure->code, env);
+        }
+        temp = temp->next;
+    }
+    if (func_exists == 0) {
+        // fprintf(stderr, "Error '%s' function could not be located\n\n",
+        // frame);
+        VALUE *val = malloc(sizeof(VALUE));
+        val->type = CONSTANT;
+        val->v.integer = -2;
+        return val;
+    }
 }
