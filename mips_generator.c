@@ -24,7 +24,7 @@ void mips_generator(TAC *seq) {
         case BLOCK_OP:
             fprintf(file, "\t.data\n");
             // Declare and don't set, check the type
-            for (int i = 0; i < *temp->args.block.nvars; i++) {
+            for (int i = 0; i < temp->args.block.nvars; i++) {
                 fprintf(file, "%s: \n", svars[i]);
             }
             break;
