@@ -37,6 +37,17 @@ VALUE *__interpret(NODE *term, ENV *env) {
         return __interpret(term->left, env);
         break;
     case IDENTIFIER:
+        if(strcmp(((TOKEN *)term)->lexeme,"true") == 0){
+            VALUE *temp = calloc(1,sizeof(VALUE));
+            temp->type = 300;
+            temp->v.boolean = 1;
+            return temp;
+        }else if(strcmp(((TOKEN *)term)->lexeme,"false") == 0){
+            VALUE *temp = calloc(1,sizeof(VALUE));
+            temp->type = 301;
+            temp->v.boolean = 0;
+            return temp;
+        }
         return term;
         break;
     case CONSTANT: {
@@ -209,29 +220,46 @@ VALUE *__interpret(NODE *term, ENV *env) {
             exit_term->v.integer = lval % rval;
             break;
         case '>':
-            exit_term->v.integer = lval > rval;
+            exit_term->v.boolean = lval > rval;
             break;
         case '<':
-            exit_term->v.integer = lval < rval;
+            exit_term->v.boolean = lval < rval;
             break;
         case NE_OP:
-            exit_term->v.integer = lval != rval;
+            exit_term->v.boolean = lval != rval;
             break;
         case EQ_OP:
-            exit_term->v.integer = lval == rval;
+            exit_term->v.boolean = lval == rval;
             break;
         case LE_OP:
-            exit_term->v.integer = lval <= rval;
+            exit_term->v.boolean = lval <= rval;
             break;
         case GE_OP:
-            exit_term->v.integer = lval >= rval;
+            exit_term->v.boolean = lval >= rval;
             break;
         }
         return exit_term;
         break;
     }
-    case IF:
+    case IF:{
+        // Making symbols for true and else didn't work
+         NODE *antecedent = term->left;
+        int has_else = strcmp(((TOKEN*)term->right)->lexeme, "else") == 0;
+        NODE *consequent = has_else ? term->right->left : term->right;
+        NODE *alternate = has_else ? NULL : term->right->right;
+
+        VALUE *result = __interpret(antecedent,env);
+        if(result->v.boolean != 1) {
+            //execute alternate
+            if(alternate == NULL) break;
+            __interpret(alternate,env);
+        }else {
+            //execute consequent
+            __interpret(consequent,env);
+        }
+        
         break;
+    }
     case WHILE:
         break;
     default:
