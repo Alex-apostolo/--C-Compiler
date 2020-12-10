@@ -9,6 +9,7 @@ VALUE *find_ident_value(TOKEN *, FRAME *, ENV *env);
 VALUE *assing_value(TOKEN *, FRAME *, VALUE *, ENV *env);
 void declare(TOKEN *, FRAME *);
 VALUE *execute(char *, ENV *, int, NODE *);
+VALUE *printfunc(VALUE *);
 
 /*Function responsible for initializing*/
 VALUE *interpret(NODE *term, ENV *env) {
@@ -56,6 +57,11 @@ VALUE *__interpret(NODE *term, ENV *env) {
     case APPLY: {
         // Call function
         char *name = ((TOKEN *)__interpret(term->left, env))->lexeme;
+        if(strcmp(name,"print") == 0) {
+            VALUE *res = __interpret(term->right,env);
+            printf(res->v.string);
+            return res;
+        } 
         VALUE *result = execute(name, env, 1, term->right);
         if (result->v.integer == -2) {
             result = execute(name, env, 0, term->right);

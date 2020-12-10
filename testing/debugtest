@@ -1,10 +1,7 @@
 int main() {
-    int sum(int a, int b){
-        return a + b;
+    if(true) {
+        int x = 0;
+    }else {
+    int y = 2;
     }
-    int func(int c, int d) {
-        return c + d;
-    }
-    int y = sum(a = 5, b = 90);
-    return func(c = y, d = 35);
 }

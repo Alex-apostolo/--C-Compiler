@@ -56,6 +56,5 @@ int main() {
     int func(int c, int d) {
         return c + d;
     }
-    int y = sum(a = 5, b = 90);
-    return func(c = y, d = 35);
+    return func(c = sum(a = 5, b = 90), d = 35);
 }
