@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 char *named(int t) {
@@ -225,7 +226,7 @@ int main(int argc, char **argv) {
                 return exit_code->v.integer;
                 break;
                 case STRING_LITERAL:
-                return exit_code->v.string;
+                return (int)exit_code->v.string;
                 break;
                 case FUNCTION:
                 return FUNCTION;
@@ -234,25 +235,26 @@ int main(int argc, char **argv) {
         }
 
         if (tac == true) {
-            TAC *seq;
-            tac_generator(tree, &seq);
+            BB *bb = calloc(1,sizeof(BB));
+            tac_generator(tree, &bb);
             printf("\n");
-            remove("result.tac");
-            FILE *tacfile = fopen("result.tac", "a");
+            remove("RESULT.tac");
+            FILE *tacfile = fopen("RESULT.tac", "a");
 
             if (tacfile == NULL)
                 fprintf(stderr,
                         "Error occured trying to create or override file");
-            printTAC(tacfile, seq);
+            printTAC(tacfile, bb);
             // Free all fields of seq
             return 0;
         }
 
         // Default action is to run the compiler
         if (interp == false && tac == false) {
-            TAC *seq;
-            tac_generator(tree, &seq);
-            mips_generator(seq);
+            // Make BB into one long TAC *
+            //TAC *seq;
+            //tac_generator(tree, &seq);
+            //mips_generator(seq);
             printf("\n");
             // TODO: run mips code
             // Free all fields of seq

@@ -1,0 +1,226 @@
+$$$ TEST 1: $$$
+
+proc main 0
+block
+return 53
+endblock 0
+
+$$$ TEST 2: $$$
+
+proc main 0
+block
+load t0 2
+load t1 3
+add t0 t1 t2
+return t2
+endblock 0
+
+$$$ TEST 3: $$$
+
+proc main 0
+block
+return 15
+endblock 3
+
+$$$ TEST 4: $$$
+
+proc main 0
+block
+load t0 53
+store t0 x
+load t1 x
+load t2 1
+add t1 t2 t3
+return t3
+endblock 1
+
+$$$ TEST 5: $$$
+
+proc main 0
+block
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+endblock 1
+
+$$$ TEST 6: $$$
+load t0 2
+store t0 a
+
+proc third 0
+block
+load t1 3
+store t1 d
+load t2 a
+load t3 b
+add t2 t3 t4
+load t5 13684
+load t6 c
+add t5 t6 t7
+load t8 14452
+load t9 d
+add t8 t9 t10
+return t10
+endblock 1
+
+
+proc main 0
+block
+t15 = call first
+return t15
+endblock 1
+
+
+proc first 0
+block
+load t11 1
+store t11 b
+t14 = call second
+return t14
+endblock 1
+
+
+proc second 0
+block
+load t12 2
+store t12 c
+t13 = call third
+$$$ TEST 7: $$$
+load t0 2
+store t0 a
+
+proc main 0
+block
+t15 = call first
+return t15
+endblock 1
+
+
+proc first 0
+block
+load t1 1
+store t1 b
+t4 = call second
+return t4
+endblock 1
+
+
+proc second 0
+block
+load t2 2
+store t2 c
+t3 = call third
+
+proc third 0
+block
+load t5 3
+store t5 d
+load t6 a
+load t7 b
+add t6 t7 t8
+load t9 14708
+load t10 c
+add t9 t10 t11
+load t12 3289460
+load t13 d
+add t12 t13 t14
+return t14
+endblock 1
+
+$$$ TEST 8: $$$
+
+proc main 0
+block
+load t3 5
+load t4 9
+add t3 t4 t5
+store t5 a
+load t6 8
+load t7 4
+sub t6 t7 t8
+store t8 b
+t9 = call func
+return t9
+endblock 2
+
+
+proc func 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+$$$ TEST 9: $$$
+
+proc main 0
+block
+load t6 5
+store t6 a
+load t7 90
+store t7 b
+t8 = call sum
+store t8 c
+load t9 35
+store t9 d
+t10 = call func
+return t10
+endblock 2
+
+
+proc sum 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+
+proc func 2
+block
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+endblock 2
+
+$$$ TEST 10: $$$
+
+proc main 0
+block
+load t6 5
+store t6 a
+load t7 90
+store t7 b
+t8 = call sum
+store t8 c
+load t9 35
+store t9 d
+t10 = call func
+return t10
+endblock 2
+
+
+proc sum 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+
+proc func 2
+block
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+endblock 2
+

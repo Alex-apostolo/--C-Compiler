@@ -1,16 +1,8 @@
-int main() {}
-%%
 int main() { return 53; }
-%%
-int main() { return "hello"; }
 %%
 int main() { return 2+3; }
 %%
-int main() { return test(); }
-%%
 int main() { int x; int y; int z; return 15;}
-%%
-int main() { int x = 67; return x;}
 %%
 int main() { int x = 53; return x+1;}
 %%
@@ -23,4 +15,6 @@ int a = 2; int main() { int first() { int b = 1; int second() { int c = 2; third
 int main() { int func(int a, int b) { return a + b; } return func(a = 5 + 9,b = 8 - 4); } 
 %%
 int main() { int sum(int a, int b){ return a + b; } int func(int c, int d) { return c + d; } return func(c = sum(a = 5, b = 90), d = 35); } 
+%%
+int main() { int x = 69; if(x > 100) { x = 0; x = x + 5; print("hello"); }else if((x * 2) < 100){ x = 135; }else if(x >= 69){ x = 123; }else { x = 456; } return x; } 
 %%

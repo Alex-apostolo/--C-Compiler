@@ -16,7 +16,7 @@
 
 static TOKEN** symbtable;
 #define HASH_SIZE (1000)
-TOKEN *int_token, *void_token, *function_token;
+TOKEN *int_token, *void_token, *function_token, *true_token, *false_token;
 
 void init_symbtable(void)
 {
@@ -27,6 +27,7 @@ void init_symbtable(void)
     function_token->lexeme = "function";
     void_token = new_token(VOID);
     void_token->lexeme = "void";
+    
 }
 
 int hash(char *s)

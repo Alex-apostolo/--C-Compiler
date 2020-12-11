@@ -1,7 +1,0 @@
-int main() {
-    if(true) {
-        int x = 0;
-    }else {
-    int y = 2;
-    }
-}
