@@ -1,5 +1,11 @@
-TEST 10:
+## THIS DOCUMENT PROVIDES A HUMAN READABLE FORM OF THE TESTS FOUND IN TESTS.in FILE ##
+## IT ONLY INCLUDES THE CONTROL FLOW TESTS AS THESE ARE THE MOST DIFFICULT TO READ ##
+## THE RESULTS FOR ALL TESTS CAN BE FOUND AT solutions.out OF THE SAME DIRECTORY ##
 
+#######
+TEST 7:
+
+## THIS TEST INDICATES THE INTERPRETER HAS LEXICAL SCOPE ##
 int a = 2;
 int third() {
     int d = 3;
@@ -18,8 +24,10 @@ int main() {
     return first();
 }
 
-TEST 11:
+#######
+TEST 8:
 
+## THIS TEST MAKES SURE THAT CLOSURES GET THE CORRECT ENVIRONMENT WHEN CALLED ##
 int a = 2;
 int main() {
     int first() {
@@ -38,8 +46,10 @@ int main() {
     return first();
 }
 
-TEST 12:
+#######
+TEST 9:
 
+## TEST FOR COMPOSITE ARGUMENTS ##
 int main() {
     int func(int a, int b) {
         return a + b;
@@ -47,8 +57,10 @@ int main() {
     return func(a = 5 + 9,b = 8 - 4);
 }
 
-TEST 13:
+#######
+TEST 10:
 
+## TEST FOR FUNCTIONAL ARGUMENTS ##
 int main() {
     int sum(int a, int b){
         return a + b;
@@ -59,8 +71,10 @@ int main() {
     return func(c = sum(a = 5, b = 90), d = 35);
 }
 
-TEST 14:
+#######
+TEST 11:
 
+## TEST FOR CONDITIONAL OPERATIONS ##
 int main() {
     int x = 69;
     if(x > 100) {
@@ -77,6 +91,10 @@ int main() {
     return x;
 }
 
+#######
+TEST 12:
+
+## TEST FOR RECURSIVE CALLS ##
 int main() {
     int factorial(int a) {
         a = a * factorial(a=a-1);
@@ -85,7 +103,9 @@ int main() {
     return factorial(a = 4);
 }
 
-TEST 59:
+#######
+TEST 13:
+
 int x;
 int func() {
     int y = 35;

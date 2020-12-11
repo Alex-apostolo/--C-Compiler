@@ -237,8 +237,8 @@ int main(int argc, char **argv) {
             BB *bb = calloc(1,sizeof(BB));
             tac_generator(tree, &bb);
             printf("\n");
-            remove("result.tac");
-            FILE *tacfile = fopen("result.tac", "a");
+            remove("RESULT.tac");
+            FILE *tacfile = fopen("RESULT.tac", "a");
 
             if (tacfile == NULL)
                 fprintf(stderr,

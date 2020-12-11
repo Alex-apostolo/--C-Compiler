@@ -1,5 +1,5 @@
 #! /bin/bash
-readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/tests.in
+readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/INTERPRETER_TESTS/TESTS.in
 readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
 readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/testing/.tmp_tac
 
