@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 /*Function definitions*/
-void append(TAC **, TAC *);
+void append(BB *, TAC *);
 BB *appendBB(BB **, BB *);
 char *treg_generator();
 char *label_generator();
@@ -77,7 +77,7 @@ void *tac_generator(NODE *term, BB **bb) {
         } else {
             func->args.proc.arity = 0;
         }
-        append((*bb)->leader, func);
+        append(*bb, func);
         break;
     }
     case CONTINUE:
@@ -104,14 +104,14 @@ void *tac_generator(NODE *term, BB **bb) {
                 ret->args.ret.type = TREG;
                 ret->args.ret.val.treg = tac_generator(term->left, bb);
             }
-            append((*bb)->leader, ret);
+            append(*bb, ret);
             TAC *block = (TAC *)malloc(sizeof(TAC));
             block->next = NULL;
             block->op = BLOCK_OP; /* This is the OP CODE for BLOCK*/
             // TODO: make it track how many variables have been declared
             // maybe at the end of the return
             block->args.block.nvars = nvars;
-            append((*bb)->leader, block);
+            append(*bb, block);
             return bb;
         } else {
             // TODO: throw an error
@@ -156,13 +156,13 @@ void *tac_generator(NODE *term, BB **bb) {
         // Creates TAC for rhs of expression
         if (term->right->type == LEAF) {
             TAC *rhs = create_load_TAC(tac_generator(term->right, bb));
-            append((*bb)->leader, rhs);
+            append(*bb, rhs);
         } else
             tac_generator(term->right, bb);
 
         // Creates TAC for lhs of expression
         TAC *lhs = create_store_TAC(tac_generator(term->left, bb));
-        append((*bb)->leader, lhs);
+        append(*bb, lhs);
         break;
     }
     case '+':
@@ -178,10 +178,10 @@ void *tac_generator(NODE *term, BB **bb) {
     case GE_OP: {
         // Creates load TAC instructions
         TAC *src1 = create_load_TAC(tac_generator(term->left, bb));
-        append((*bb)->leader, src1);
+        append(*bb, src1);
 
         TAC *src2 = create_load_TAC(tac_generator(term->right, bb));
-        append((*bb)->leader, src2);
+        append(*bb, src2);
 
         // Creates add TAC instruction
         TAC *add = (TAC *)malloc(sizeof(TAC));
@@ -191,7 +191,7 @@ void *tac_generator(NODE *term, BB **bb) {
         add->args.expr.src1 = src1->args.load.treg;
         add->args.expr.src2 = src2->args.load.treg;
         add->args.expr.dst = treg_generator();
-        append((*bb)->leader, add);
+        append(*bb, add);
         return add->args.expr.dst;
         break;
     }
@@ -240,15 +240,21 @@ char *label_generator() {
     return str;
 }
 
-void append(TAC **seq, TAC *new_node) {
+void append(BB *bb, TAC *new_node) {
     new_node->next = NULL;
 
-    if (*seq == NULL) {
-        *seq = new_node;
+    if (bb->leader == NULL) {
+        // alocate space for bb->leader then assign
+        bb->leader = calloc(1,sizeof(TAC *));
+        *(bb->leader) = new_node;
+        return;
+    }
+    if (*(bb->leader) == NULL) {
+        *(bb->leader) = new_node;
         return;
     }
 
-    TAC *last = *seq;
+    TAC *last = *(bb->leader);
     while (last->next != NULL) {
         last = last->next;
     }
