@@ -1,0 +1,145 @@
+TEST 1:
+
+proc main 0
+block
+TEST 2:
+
+proc main 0
+block
+return 53
+endblock 0
+
+TEST 3:
+
+proc main 0
+block
+load t0 2
+load t1 3
+add t0 t1 t2
+return t2
+endblock 0
+
+TEST 4:
+
+proc main 0
+block
+return 15
+endblock 3
+
+TEST 5:
+
+proc main 0
+block
+load t0 53
+store t0 x
+load t1 x
+load t2 1
+add t1 t2 t3
+return t3
+endblock 1
+
+TEST 6:
+
+proc main 0
+block
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+endblock 1
+
+TEST 7:
+
+proc main 0
+block
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+endblock 1
+
+TEST 8:
+
+proc main 0
+block
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+endblock 1
+
+TEST 9:
+
+proc main 0
+block
+return (null)
+endblock 2
+
+
+proc func 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+TEST 10:
+
+proc main 0
+block
+return (null)
+endblock 2
+
+
+proc sum 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+
+proc func 2
+block
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+endblock 2
+
+TEST 11:
+
+proc main 0
+block
+return (null)
+endblock 2
+
+
+proc sum 2
+block
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+endblock 2
+
+
+proc func 2
+block
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+endblock 2
+
