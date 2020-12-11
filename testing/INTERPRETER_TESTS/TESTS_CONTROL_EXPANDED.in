@@ -3,7 +3,7 @@
 ## THE RESULTS FOR ALL TESTS CAN BE FOUND AT solutions.out OF THE SAME DIRECTORY ##
 
 #######
-TEST 7:
+TEST 6:
 
 ## THIS TEST INDICATES THE INTERPRETER HAS LEXICAL SCOPE ##
 int a = 2;
@@ -25,7 +25,7 @@ int main() {
 }
 
 #######
-TEST 8:
+TEST 7:
 
 ## THIS TEST MAKES SURE THAT CLOSURES GET THE CORRECT ENVIRONMENT WHEN CALLED ##
 int a = 2;
@@ -47,7 +47,7 @@ int main() {
 }
 
 #######
-TEST 9:
+TEST 8:
 
 ## TEST FOR COMPOSITE ARGUMENTS ##
 int main() {
@@ -58,7 +58,7 @@ int main() {
 }
 
 #######
-TEST 10:
+TEST 9:
 
 ## TEST FOR FUNCTIONAL ARGUMENTS ##
 int main() {
@@ -72,7 +72,7 @@ int main() {
 }
 
 #######
-TEST 11:
+TEST 10:
 
 ## TEST FOR CONDITIONAL OPERATIONS ##
 int main() {
@@ -92,7 +92,7 @@ int main() {
 }
 
 #######
-TEST 12:
+TEST 11:
 
 ## TEST FOR RECURSIVE CALLS ##
 int main() {
@@ -101,22 +101,4 @@ int main() {
         return a;
     }    
     return factorial(a = 4);
-}
-
-#######
-TEST 13:
-
-int x;
-int func() {
-    int y = 35;
-    return y;
-}
-int main() {
-    int func2() {
-        int z = 3;
-        return z;
-    }
-    int x = 5;
-    x = x + 3;
-    return x;
 }

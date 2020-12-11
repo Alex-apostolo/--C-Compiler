@@ -70,7 +70,8 @@ endblock 1
 
 proc main 0
 block
-return (null)
+t15 = call first
+return t15
 endblock 1
 
 
@@ -78,7 +79,8 @@ proc first 0
 block
 load t11 1
 store t11 b
-return (null)
+t14 = call second
+return t14
 endblock 1
 
 
@@ -86,13 +88,15 @@ proc second 0
 block
 load t12 2
 store t12 c
+t13 = call third
 $$$ TEST 7: $$$
 load t0 2
 store t0 a
 
 proc main 0
 block
-return (null)
+t15 = call first
+return t15
 endblock 1
 
 
@@ -100,7 +104,8 @@ proc first 0
 block
 load t1 1
 store t1 b
-return (null)
+t4 = call second
+return t4
 endblock 1
 
 
@@ -108,28 +113,38 @@ proc second 0
 block
 load t2 2
 store t2 c
+t3 = call third
 
 proc third 0
 block
-load t3 3
-store t3 d
-load t4 a
-load t5 b
-add t4 t5 t6
-load t7 14196
-load t8 c
-add t7 t8 t9
-load t10 3158388
-load t11 d
-add t10 t11 t12
-return t12
+load t5 3
+store t5 d
+load t6 a
+load t7 b
+add t6 t7 t8
+load t9 14708
+load t10 c
+add t9 t10 t11
+load t12 3289460
+load t13 d
+add t12 t13 t14
+return t14
 endblock 1
 
 $$$ TEST 8: $$$
 
 proc main 0
 block
-return (null)
+load t3 5
+load t4 9
+add t3 t4 t5
+store t5 a
+load t6 8
+load t7 4
+sub t6 t7 t8
+store t8 b
+t9 = call func
+return t9
 endblock 2
 
 
@@ -145,7 +160,16 @@ $$$ TEST 9: $$$
 
 proc main 0
 block
-return (null)
+load t6 5
+store t6 a
+load t7 90
+store t7 b
+t8 = call sum
+store t8 c
+load t9 35
+store t9 d
+t10 = call func
+return t10
 endblock 2
 
 
@@ -170,7 +194,16 @@ $$$ TEST 10: $$$
 
 proc main 0
 block
-return (null)
+load t6 5
+store t6 a
+load t7 90
+store t7 b
+t8 = call sum
+store t8 c
+load t9 35
+store t9 d
+t10 = call func
+return t10
 endblock 2
 
 
