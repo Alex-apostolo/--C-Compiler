@@ -7,7 +7,8 @@
 #define BLOCK_OP 278
 #define LOAD_OP 279
 #define STORE_OP 280
-#define TREG 281
+#define CALL_OP 281
+#define TREG 282
 
 /*Global Variables*/
 extern int ntreg;
@@ -28,7 +29,9 @@ typedef struct proc {
 
 // INCLUDE 
 typedef struct call {
-    TOKEN * name ; int arity ;
+    TOKEN * name ; 
+    int arity ;
+    char *store;
 } CALL ;
 
 typedef struct block {

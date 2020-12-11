@@ -16,7 +16,7 @@ if [ "$line" != "%%" ]
 then
 echo -n $line > $FILE
 $MYCC -t $FILE
-printf "TEST $a:\n" >> $OUTPUT
+printf "\$\$\$ TEST $a: \$\$\$\n" >> $OUTPUT
 cat $RESULT >> $OUTPUT
 printf "\n"
 a=$((a+1))

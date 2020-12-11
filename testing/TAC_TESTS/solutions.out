@@ -1,15 +1,11 @@
-TEST 1:
-
-proc main 0
-block
-TEST 2:
+$$$ TEST 1: $$$
 
 proc main 0
 block
 return 53
 endblock 0
 
-TEST 3:
+$$$ TEST 2: $$$
 
 proc main 0
 block
@@ -19,14 +15,14 @@ add t0 t1 t2
 return t2
 endblock 0
 
-TEST 4:
+$$$ TEST 3: $$$
 
 proc main 0
 block
 return 15
 endblock 3
 
-TEST 5:
+$$$ TEST 4: $$$
 
 proc main 0
 block
@@ -38,7 +34,7 @@ add t1 t2 t3
 return t3
 endblock 1
 
-TEST 6:
+$$$ TEST 5: $$$
 
 proc main 0
 block
@@ -51,7 +47,9 @@ store t3 x
 return x
 endblock 1
 
-TEST 7:
+$$$ TEST 6: $$$
+load t0 2
+store t0 a
 
 proc third 0
 block
@@ -88,7 +86,9 @@ proc second 0
 block
 load t12 2
 store t12 c
-TEST 8:
+$$$ TEST 7: $$$
+load t0 2
+store t0 a
 
 proc main 0
 block
@@ -125,7 +125,7 @@ add t10 t11 t12
 return t12
 endblock 1
 
-TEST 9:
+$$$ TEST 8: $$$
 
 proc main 0
 block
@@ -141,7 +141,7 @@ add t0 t1 t2
 return t2
 endblock 2
 
-TEST 10:
+$$$ TEST 9: $$$
 
 proc main 0
 block
@@ -166,7 +166,7 @@ add t3 t4 t5
 return t5
 endblock 2
 
-TEST 11:
+$$$ TEST 10: $$$
 
 proc main 0
 block

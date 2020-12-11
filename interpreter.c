@@ -1,7 +1,9 @@
 #include "interpreter.h"
 #include "C.tab.h"
 #include "stack.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 FRAME *extend_frame(FRAME *);
 VALUE *__interpret(NODE *, ENV *);
@@ -48,13 +50,13 @@ VALUE *__interpret(NODE *term, ENV *env) {
             temp->v.boolean = 0;
             return temp;
         }
-        return term;
+        return (VALUE *)term;
         break;
     case CONSTANT: {
         // Term holds its value on the right child
         VALUE *constant = calloc(1, sizeof(VALUE));
         constant->type = CONSTANT;
-        constant->v.integer = term->right;
+        constant->v.integer = (int)term->right;
         return constant;
         break;
     }
@@ -62,7 +64,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         // Term holds its value on the left child
         VALUE *string = calloc(1, sizeof(VALUE));
         string->type = STRING_LITERAL;
-        string->v.string = term->left;
+        string->v.string = (char *)term->left;
         return string;
     }
     case APPLY: {
@@ -70,7 +72,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         char *name = ((TOKEN *)__interpret(term->left, env))->lexeme;
         if(strcmp(name,"print") == 0) {
             VALUE *res = __interpret(term->right,env);
-            printf(res->v.string);
+            printf("%s",res->v.string);
             return res;
         } 
         VALUE *result = execute(name, env, 1, term->right);
@@ -78,7 +80,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
             result = execute(name, env, 0, term->right);
             if (result->v.integer == -2) {
                 printf("Error could not find function\n\n");
-                return -1;
+                return NULL;
             }
         }
         // Pop from frame from stack
@@ -104,12 +106,12 @@ VALUE *__interpret(NODE *term, ENV *env) {
 
         CLOSURE *new_closure = calloc(1, sizeof(CLOSURE));
         new_closure->code = term->right;
-        new_closure->env = env->stack;
+        new_closure->env = peek(env->stack);
 
         closure->v.closure = new_closure;
         closure->type = FUNCTION;
         closure->v.closure->params = term->left->right->right;
-        assing_value(__interpret(term->left, env), peek(env->stack), closure,
+        assing_value((TOKEN *)__interpret(term->left, env), peek(env->stack), closure,
                      env);
         break;
     }
@@ -119,9 +121,9 @@ VALUE *__interpret(NODE *term, ENV *env) {
         //     __interpret(term->right, env);
         // }
         // Left child is the Name of function
-        TOKEN *t = __interpret(term->left, env);
+        TOKEN *t = (TOKEN *)__interpret(term->left, env);
         declare(t, peek(env->stack));
-        return t;
+        return (VALUE *)t;
         break;
     }
     case ',':
@@ -137,7 +139,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         if (term->left != NULL) {
             if (term->left->type == LEAF &&
                 term->left->left->type == IDENTIFIER) {
-                return find_ident_value(__interpret(term->left, env),
+                return find_ident_value((TOKEN *)__interpret(term->left, env),
                                         peek(env->stack), env);
             } else
                 return __interpret(term->left, env);
@@ -150,11 +152,11 @@ VALUE *__interpret(NODE *term, ENV *env) {
         if (term->left->type == LEAF) {
             if (term->right->type == LEAF) {
                 // Right child is the variable name
-                declare(__interpret(term->right, env), peek(env->stack));
+                declare((TOKEN *)__interpret(term->right, env), peek(env->stack));
             } else {
                 // Right child is the AST "=" and we declare the variable before
                 // assigning
-                declare(__interpret(term->right->left, env), peek(env->stack));
+                declare((TOKEN *)__interpret(term->right->left, env), peek(env->stack));
                 __interpret(term->right, env);
             }
         } else {
@@ -170,7 +172,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
         return __interpret(term->right, env);
         break;
     case '=':
-        assing_value(__interpret(term->left, env), peek(env->stack),
+        assing_value((TOKEN *)__interpret(term->left, env), peek(env->stack),
                      __interpret(term->right, env), env);
         break;
     case '+':
@@ -187,14 +189,14 @@ VALUE *__interpret(NODE *term, ENV *env) {
         int lval;
         int rval;
         if (term->left->left->type == IDENTIFIER)
-            lval = find_ident_value(__interpret(term->left, env),
+            lval = find_ident_value((TOKEN *)__interpret(term->left, env),
                                     peek(env->stack), env)
                        ->v.integer;
         else
             lval = __interpret(term->left, env)->v.integer;
 
         if (term->right->left->type == IDENTIFIER)
-            rval = find_ident_value(__interpret(term->right, env),
+            rval = find_ident_value((TOKEN *)__interpret(term->right, env),
                                     peek(env->stack), env)
                        ->v.integer;
         else
@@ -264,6 +266,7 @@ VALUE *__interpret(NODE *term, ENV *env) {
     default:
         break;
     }
+    return NULL;
 }
 
 void print_bindings(FRAME *frame) {
@@ -285,7 +288,7 @@ VALUE *find_ident_value(TOKEN *t, FRAME *frame, ENV *env) {
         }
         bindings = bindings->next;
     }
-    // error(" unbound variable ");
+    
     if (env != NULL) {
         BINDING *bindings = env->global->bindings;
         while (bindings != NULL) {
@@ -295,6 +298,7 @@ VALUE *find_ident_value(TOKEN *t, FRAME *frame, ENV *env) {
             bindings = bindings->next;
         }
     }
+    // error(" unbound variable ");
 }
 
 VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
@@ -330,6 +334,7 @@ VALUE *assing_value(TOKEN *t, FRAME *frame, VALUE *value, ENV *env) {
             bindings = bindings->next;
         }
     }
+    return NULL;
     // error(" unbound variable");
 }
 
@@ -429,4 +434,5 @@ VALUE *execute(char *frame, ENV *env, int local, NODE *args) {
         val->v.integer = -2;
         return val;
     }
+    return NULL;
 }

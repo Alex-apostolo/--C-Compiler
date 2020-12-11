@@ -33,9 +33,20 @@ void *tac_generator(NODE *term, BB **bb) {
         // Interpret as TOKEN*
         return term;
         break;
-    case APPLY:
+    case APPLY: {
+        if (term->right != NULL) {
+            tac_generator(term->right, bb);
+        }
         // Simply call the function: this will be a ja in MIPS
+        TAC *call = calloc(1, sizeof(TAC));
+        call->op = CALL_OP;
+        call->args.call.name = ((TOKEN *)term->left)->lexeme;
+        call->args.call.store = treg_generator();
+        call->next = NULL;
+        append(*bb, call);
+        return latest_treg;
         break;
+    }
     case VOID:
     case FUNCTION:
     case INT:
@@ -101,8 +112,14 @@ void *tac_generator(NODE *term, BB **bb) {
                     ret->args.ret.val.constant = temp->value;
                 }
             } else {
+                // if (term->left->type == APPLY) {
+                //     tac_generator(term->left,bb);
+                //     ret->args.ret.type = TREG;
+                //     ret->args.ret.val.treg = latest_treg;
+                // } else {
                 ret->args.ret.type = TREG;
                 ret->args.ret.val.treg = tac_generator(term->left, bb);
+                // }
             }
             append(*bb, ret);
             TAC *block = (TAC *)malloc(sizeof(TAC));
@@ -176,23 +193,43 @@ void *tac_generator(NODE *term, BB **bb) {
     case EQ_OP:
     case LE_OP:
     case GE_OP: {
+        // CASE WHERE CALLING FUNCTION
         // Creates load TAC instructions
-        TAC *src1 = create_load_TAC(tac_generator(term->left, bb));
-        append(*bb, src1);
+        TAC* src1;
+        TAC* src2;
+        char *tempr1;
+        char *tempr2;
+        if (term->left->type != APPLY) {
+            src1 = create_load_TAC(tac_generator(term->left, bb));
+            append(*bb, src1);
+        }else {
+            tempr1 = (char *)tac_generator(term->left, bb);
+        }
+        if (term->right->type != APPLY) {
+            src2 = create_load_TAC(tac_generator(term->right, bb));
+            append(*bb, src2);
+        }else {
+            tempr2 = (char *)tac_generator(term->right, bb);
+        }
 
-        TAC *src2 = create_load_TAC(tac_generator(term->right, bb));
-        append(*bb, src2);
+        // Creates oper TAC instruction
+        TAC *oper = (TAC *)malloc(sizeof(TAC));
+        oper->next = NULL;
+        oper->op = term->type;
 
-        // Creates add TAC instruction
-        TAC *add = (TAC *)malloc(sizeof(TAC));
-        add->next = NULL;
-        add->op = term->type;
-
-        add->args.expr.src1 = src1->args.load.treg;
-        add->args.expr.src2 = src2->args.load.treg;
-        add->args.expr.dst = treg_generator();
-        append(*bb, add);
-        return add->args.expr.dst;
+        if(term->left->type != APPLY) {
+            oper->args.expr.src1 = src1->args.load.treg;
+        }else {
+            oper->args.expr.src1 = tempr1;
+        }
+        if(term->right->type != APPLY) {
+            oper->args.expr.src2 = src2->args.load.treg;
+        }else {
+            oper->args.expr.src1 = tempr2;
+        }
+        oper->args.expr.dst = treg_generator();
+        append(*bb, oper);
+        return oper->args.expr.dst;
         break;
     }
     case IF: {
@@ -245,7 +282,7 @@ void append(BB *bb, TAC *new_node) {
 
     if (bb->leader == NULL) {
         // alocate space for bb->leader then assign
-        bb->leader = calloc(1,sizeof(TAC *));
+        bb->leader = calloc(1, sizeof(TAC *));
         *(bb->leader) = new_node;
         return;
     }
@@ -325,6 +362,10 @@ void printTAC(FILE *file, BB *bb) {
             case FUNCTION:
                 fprintf(file, "\nproc %s %d\nblock\n",
                         temp->args.proc.name->lexeme, temp->args.proc.arity);
+                break;
+            case CALL_OP:
+                fprintf(file, "%s = call %s\n", temp->args.call.store,
+                        temp->args.call.name->lexeme);
                 break;
             case BLOCK_OP:
                 // if its proc //endproc if its if //endif

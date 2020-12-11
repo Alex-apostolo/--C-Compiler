@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 char *named(int t) {
@@ -225,7 +226,7 @@ int main(int argc, char **argv) {
                 return exit_code->v.integer;
                 break;
                 case STRING_LITERAL:
-                return exit_code->v.string;
+                return (int)exit_code->v.string;
                 break;
                 case FUNCTION:
                 return FUNCTION;
@@ -251,9 +252,9 @@ int main(int argc, char **argv) {
         // Default action is to run the compiler
         if (interp == false && tac == false) {
             // Make BB into one long TAC *
-            TAC *seq;
-            tac_generator(tree, &seq);
-            mips_generator(seq);
+            //TAC *seq;
+            //tac_generator(tree, &seq);
+            //mips_generator(seq);
             printf("\n");
             // TODO: run mips code
             // Free all fields of seq
