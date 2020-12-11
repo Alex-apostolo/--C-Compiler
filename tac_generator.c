@@ -7,12 +7,11 @@
 
 /*Function definitions*/
 void append(TAC **, TAC *);
-void appendBB(BB **, BB *);
+BB *appendBB(BB **, BB *);
 char *treg_generator();
 char *label_generator();
 TAC *create_load_TAC(TOKEN *term);
 TAC *create_store_TAC(TOKEN *term);
-void *__tac_generator(NODE *, BB *);
 
 /*Global Variables*/
 int ntreg = 0;
@@ -22,18 +21,11 @@ char *latest_label;
 int nvars = 0;
 char *svars[31];
 
-BB *tac_generator(NODE *term, TAC **seq) {
-    // Creates first basic block which is assigned to
-    BB *globalbb = calloc(1, sizeof(BB));
-    __tac_generator(term, globalbb);
-    return globalbb;
-}
-
-void *__tac_generator(NODE *term, BB *bb) {
+void *tac_generator(NODE *term, BB **bb) {
     switch (term->type) {
     case LEAF:
         // Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
-        return __tac_generator(term->left, bb);
+        return tac_generator(term->left, bb);
         break;
     case IDENTIFIER:
     case CONSTANT:
@@ -50,21 +42,21 @@ void *__tac_generator(NODE *term, BB *bb) {
         break;
     case 'd':
         // Left child is an AST for Return type
-        __tac_generator(term->left, bb);
+        tac_generator(term->left, bb);
         // Right child is the Name and arguments
-        __tac_generator(term->right, bb);
+        tac_generator(term->right, bb);
         break;
     case 'D': {
         // Append to Basic Blocks
         BB *new_bb = calloc(1, sizeof(BB));
         TAC **new_seq = calloc(1, sizeof(TAC *));
         new_bb->leader = new_seq;
-        appendBB(&bb, new_bb);
+        new_bb = appendBB(bb, new_bb);
         // Left child is the Function definition
-        __tac_generator(term->left, new_bb);
+        tac_generator(term->left, &new_bb);
         // Right child is the Function body
         if (term->right != NULL) {
-            return __tac_generator(term->right, new_bb);
+            return tac_generator(term->right, &new_bb);
         } else {
             return 0;
         }
@@ -75,17 +67,17 @@ void *__tac_generator(NODE *term, BB *bb) {
         TAC *func = (TAC *)malloc(sizeof(TAC));
         func->next = NULL;
         func->op = FUNCTION;
-        func->args.proc.name = __tac_generator(term->left, bb);
+        func->args.proc.name = tac_generator(term->left, bb);
         nvars = 0;
 
         if (term->right != NULL) {
             int varsBefore = nvars;
-            __tac_generator(term->right, bb);
+            tac_generator(term->right, bb);
             func->args.proc.arity = nvars - varsBefore;
         } else {
             func->args.proc.arity = 0;
         }
-        append(bb->leader, func);
+        append((*bb)->leader, func);
         break;
     }
     case CONTINUE:
@@ -100,7 +92,7 @@ void *__tac_generator(NODE *term, BB *bb) {
         ret->op = RETURN;
         if (term->left != NULL) {
             if (term->left->type == LEAF) {
-                TOKEN *temp = __tac_generator(term->left, bb);
+                TOKEN *temp = tac_generator(term->left, bb);
                 if (term->left->left->type == IDENTIFIER) {
                     ret->args.ret.type = IDENTIFIER;
                     ret->args.ret.val.identifier = temp->lexeme;
@@ -110,17 +102,16 @@ void *__tac_generator(NODE *term, BB *bb) {
                 }
             } else {
                 ret->args.ret.type = TREG;
-                ret->args.ret.val.treg =
-                    __tac_generator(term->left, bb);
+                ret->args.ret.val.treg = tac_generator(term->left, bb);
             }
-            append(bb->leader, ret);
+            append((*bb)->leader, ret);
             TAC *block = (TAC *)malloc(sizeof(TAC));
             block->next = NULL;
             block->op = BLOCK_OP; /* This is the OP CODE for BLOCK*/
             // TODO: make it track how many variables have been declared
             // maybe at the end of the return
             block->args.block.nvars = nvars;
-            append(bb->leader, block);
+            append((*bb)->leader, block);
             return bb;
         } else {
             // TODO: throw an error
@@ -129,51 +120,49 @@ void *__tac_generator(NODE *term, BB *bb) {
         break;
     }
     case ',':
-        __tac_generator(term->left, bb);
-        __tac_generator(term->right, bb);
+        tac_generator(term->left, bb);
+        tac_generator(term->right, bb);
         break;
     case '~':
         if (term->left->type == LEAF) {
             // Left child is the type
-            __tac_generator(term->left, bb);
+            tac_generator(term->left, bb);
 
             // Right child is the variable name
             if (term->right->type == LEAF) {
                 svars[nvars] =
-                    ((TOKEN *)__tac_generator(term->right, bb))->lexeme;
+                    ((TOKEN *)tac_generator(term->right, bb))->lexeme;
             } else {
                 // Right child is the AST "=" and we declare the variable before
                 // assigning
                 svars[nvars] =
-                    ((TOKEN *)__tac_generator(term->right->left, bb))
-                        ->lexeme;
-                __tac_generator(term->right, bb);
+                    ((TOKEN *)tac_generator(term->right->left, bb))->lexeme;
+                tac_generator(term->right, bb);
             }
             nvars++;
         } else {
-            __tac_generator(term->left, bb);
-            __tac_generator(term->right, bb);
+            tac_generator(term->left, bb);
+            tac_generator(term->right, bb);
         }
         break;
     case ';':
         // Left child is the first item or a sequence; returned values are
         // ignored
-        __tac_generator(term->left, bb);
+        tac_generator(term->left, bb);
         // Right child is the last item and also the return value
-        return __tac_generator(term->right, bb);
+        return tac_generator(term->right, bb);
         break;
     case '=': {
         // Creates TAC for rhs of expression
         if (term->right->type == LEAF) {
-            TAC *rhs =
-                create_load_TAC(__tac_generator(term->right, bb));
-            append(bb->leader, rhs);
+            TAC *rhs = create_load_TAC(tac_generator(term->right, bb));
+            append((*bb)->leader, rhs);
         } else
-            __tac_generator(term->right, bb);
+            tac_generator(term->right, bb);
 
         // Creates TAC for lhs of expression
-        TAC *lhs = create_store_TAC(__tac_generator(term->left, bb));
-        append(bb->leader, lhs);
+        TAC *lhs = create_store_TAC(tac_generator(term->left, bb));
+        append((*bb)->leader, lhs);
         break;
     }
     case '+':
@@ -188,11 +177,11 @@ void *__tac_generator(NODE *term, BB *bb) {
     case LE_OP:
     case GE_OP: {
         // Creates load TAC instructions
-        TAC *src1 = create_load_TAC(__tac_generator(term->left, bb));
-        append(bb->leader, src1);
+        TAC *src1 = create_load_TAC(tac_generator(term->left, bb));
+        append((*bb)->leader, src1);
 
-        TAC *src2 = create_load_TAC(__tac_generator(term->right, bb));
-        append(bb->leader, src2);
+        TAC *src2 = create_load_TAC(tac_generator(term->right, bb));
+        append((*bb)->leader, src2);
 
         // Creates add TAC instruction
         TAC *add = (TAC *)malloc(sizeof(TAC));
@@ -202,7 +191,7 @@ void *__tac_generator(NODE *term, BB *bb) {
         add->args.expr.src1 = src1->args.load.treg;
         add->args.expr.src2 = src2->args.load.treg;
         add->args.expr.dst = treg_generator();
-        append(bb->leader, add);
+        append((*bb)->leader, add);
         return add->args.expr.dst;
         break;
     }
@@ -217,7 +206,7 @@ void *__tac_generator(NODE *term, BB *bb) {
         if_->antecedent = ((TOKEN *)term->left)->lexeme;
         if_->label = label_generator();
 
-        //append(bb->leader, if_);
+        // append(*bb->leader, if_);
 
         break;
     }
@@ -267,13 +256,13 @@ void append(TAC **seq, TAC *new_node) {
     return;
 }
 
-void appendBB(BB **bb, BB *new_node) {
+BB *appendBB(BB **bb, BB *new_node) {
     new_node->next = NULL;
 
     if ((*bb)->leader == NULL) {
         (*bb)->leader = new_node->leader;
         (*bb)->next = new_node->next;
-        return;
+        return *bb;
     }
 
     BB *last = *bb;
@@ -281,7 +270,7 @@ void appendBB(BB **bb, BB *new_node) {
         last = last->next;
     }
     last->next = new_node;
-    return;
+    return last->next;
 }
 
 TAC *create_load_TAC(TOKEN *term) {
@@ -321,51 +310,55 @@ TAC *create_store_TAC(TOKEN *term) {
 // Method to make basic block sequence into one big TAC sequence
 
 // Refactor for basic blocks
-void printTAC(FILE *file, TAC *ls) {
-    TAC *temp = ls;
-    while (temp != NULL) {
-        switch (temp->op) {
-        case FUNCTION:
-            fprintf(file, "\nproc %s %d\nblock\n", temp->args.proc.name->lexeme,
-                    temp->args.proc.arity);
-            break;
-        case BLOCK_OP:
-            // if its proc //endproc if its if //endif
+void printTAC(FILE *file, BB *bb) {
+    BB *bbtemp = bb;
+    while (bbtemp != NULL) {
+        TAC *temp = *(bbtemp->leader);
+        while (temp != NULL) {
+            switch (temp->op) {
+            case FUNCTION:
+                fprintf(file, "\nproc %s %d\nblock\n",
+                        temp->args.proc.name->lexeme, temp->args.proc.arity);
+                break;
+            case BLOCK_OP:
+                // if its proc //endproc if its if //endif
 
-            fprintf(file, "endblock %d\n\n", (temp->args.block.nvars));
-            break;
-        case LOAD_OP:
-            if (temp->args.load.type == IDENTIFIER)
-                fprintf(file, "load %s %s\n", temp->args.load.treg,
-                        temp->args.load.val.identifier);
-            else
-                fprintf(file, "load %s %s\n", temp->args.load.treg,
-                        temp->args.load.val.constant);
-            break;
-        case STORE_OP:
-            fprintf(file, "store %s %s\n", temp->args.store.treg,
-                    temp->args.store.value);
-            break;
-        case RETURN:
-            switch (temp->args.ret.type) {
-            case IDENTIFIER:
-                fprintf(file, "return %s\n", temp->args.ret.val.identifier);
+                fprintf(file, "endblock %d\n\n", (temp->args.block.nvars));
                 break;
-            case CONSTANT:
-                fprintf(file, "return %d\n", temp->args.ret.val.constant);
+            case LOAD_OP:
+                if (temp->args.load.type == IDENTIFIER)
+                    fprintf(file, "load %s %s\n", temp->args.load.treg,
+                            temp->args.load.val.identifier);
+                else
+                    fprintf(file, "load %s %s\n", temp->args.load.treg,
+                            temp->args.load.val.constant);
                 break;
-            case TREG:
-                fprintf(file, "return %s\n", temp->args.ret.val.treg);
+            case STORE_OP:
+                fprintf(file, "store %s %s\n", temp->args.store.treg,
+                        temp->args.store.value);
+                break;
+            case RETURN:
+                switch (temp->args.ret.type) {
+                case IDENTIFIER:
+                    fprintf(file, "return %s\n", temp->args.ret.val.identifier);
+                    break;
+                case CONSTANT:
+                    fprintf(file, "return %d\n", temp->args.ret.val.constant);
+                    break;
+                case TREG:
+                    fprintf(file, "return %s\n", temp->args.ret.val.treg);
+                    break;
+                }
+                break;
+            case '+':
+                fprintf(file, "add %s %s %s\n", temp->args.expr.src1,
+                        temp->args.expr.src2, temp->args.expr.dst);
+                break;
+            default:
                 break;
             }
-            break;
-        case '+':
-            fprintf(file, "add %s %s %s\n", temp->args.expr.src1,
-                    temp->args.expr.src2, temp->args.expr.dst);
-            break;
-        default:
-            break;
+            temp = temp->next;
         }
-        temp = temp->next;
+        bbtemp = bbtemp->next;
     }
 }

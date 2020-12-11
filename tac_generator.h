@@ -75,8 +75,8 @@ typedef struct bb {
     struct bb *next;
 } BB;
 
-void printTAC(FILE *,TAC *);
-BB *tac_generator(NODE *,TAC **);
+void printTAC(FILE *,BB *);
+void *tac_generator(NODE *,BB **);
 char *treg_generator();
 char* my_itoa(int);
 

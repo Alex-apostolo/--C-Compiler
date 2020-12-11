@@ -1,7 +1,22 @@
+void func4() {
+    int p = 120;
+    return p;
+}
+int a = 2;
 int main() {
     int x = 0;
     int func() {
-        return;
+        int func3() {
+            int z = 145;
+            return z;
+        }
+        int y = 0;
+        return y;
+    }
+    int y = 135;
+    int func2() {
+        return 135;
     }
     return x;
 }
+int b = 5;
