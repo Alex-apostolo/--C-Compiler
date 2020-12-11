@@ -195,20 +195,20 @@ void *tac_generator(NODE *term, BB **bb) {
     case GE_OP: {
         // CASE WHERE CALLING FUNCTION
         // Creates load TAC instructions
-        TAC* src1;
-        TAC* src2;
+        TAC *src1;
+        TAC *src2;
         char *tempr1;
         char *tempr2;
         if (term->left->type != APPLY) {
             src1 = create_load_TAC(tac_generator(term->left, bb));
             append(*bb, src1);
-        }else {
+        } else {
             tempr1 = (char *)tac_generator(term->left, bb);
         }
         if (term->right->type != APPLY) {
             src2 = create_load_TAC(tac_generator(term->right, bb));
             append(*bb, src2);
-        }else {
+        } else {
             tempr2 = (char *)tac_generator(term->right, bb);
         }
 
@@ -217,15 +217,15 @@ void *tac_generator(NODE *term, BB **bb) {
         oper->next = NULL;
         oper->op = term->type;
 
-        if(term->left->type != APPLY) {
+        if (term->left->type != APPLY) {
             oper->args.expr.src1 = src1->args.load.treg;
-        }else {
+        } else {
             oper->args.expr.src1 = tempr1;
         }
-        if(term->right->type != APPLY) {
+        if (term->right->type != APPLY) {
             oper->args.expr.src2 = src2->args.load.treg;
-        }else {
-            oper->args.expr.src1 = tempr2;
+        } else {
+            oper->args.expr.src2 = tempr2;
         }
         oper->args.expr.dst = treg_generator();
         append(*bb, oper);
@@ -398,7 +398,30 @@ void printTAC(FILE *file, BB *bb) {
                 }
                 break;
             case '+':
-                fprintf(file, "add %s %s %s\n", temp->args.expr.src1,
+            case '-':
+            case '*':
+            case '/':
+            case '%':
+            case '>':
+            case '<':
+            case NE_OP:
+            case EQ_OP:
+            case LE_OP:
+            case GE_OP:
+                switch (temp->op) {
+                case '+': fprintf(file, "add"); break;
+                case '-': fprintf(file, "sub"); break;
+                case '*': fprintf(file, "mul"); break;
+                case '/': fprintf(file, "div"); break;
+                case '%': fprintf(file, "mod"); break;
+                case '>': fprintf(file, "gret"); break;
+                case '<': fprintf(file, "less"); break;
+                case NE_OP: fprintf(file, "ne"); break;
+                case EQ_OP: fprintf(file, "eq"); break;
+                case LE_OP: fprintf(file, "eqle"); break;
+                case GE_OP: fprintf(file, "eqge"); break;
+                }
+                fprintf(file, " %s %s %s\n", temp->args.expr.src1,
                         temp->args.expr.src2, temp->args.expr.dst);
                 break;
             default:
