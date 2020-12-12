@@ -1,2 +1,8 @@
 int x = 15;
 int y;
+int func();
+int func1() {
+    int x = 0;
+    return x;
+}
+int z = 35;

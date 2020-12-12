@@ -12,7 +12,7 @@ char *treg_generator();
 char *label_generator();
 TAC *create_load_TAC(TOKEN *term);
 TAC *create_store_TAC(TOKEN *term);
-void _tac_generator(NODE *, TAC **);
+void *__tac_generator(NODE *,TAC **);
 
 /*Global Variables*/
 int ntreg = 0;
@@ -24,19 +24,18 @@ char *svars[31];
 
 int arguments = 0;
 
-BB *tac_generator(NODE *term) {
-    TAC **seq = calloc(1, sizeof(TAC *));
-    _tac_generator(term, seq);
-}
-
-// return values for constant literals etc
-void _tac_generator(NODE *term, TAC **seq) {
+// Sets up global environment
+void tac_generator(NODE *term, TAC **seq) {
     switch (term->type) {
     case 'D':
         // Call the left to create a proc
-        _tac_generator(term->left, seq);
+        tac_generator(term->left, seq);
         // Call the right for the body of the proc
-        // tac_generator(term->right,seq);
+        __tac_generator(term->right,seq);
+        break;
+    case 'd':
+        // Right child is 'F'
+        tac_generator(term->right, seq);
         break;
     case 'F': {
         // Creates a Process TAC instruction
@@ -44,25 +43,33 @@ void _tac_generator(NODE *term, TAC **seq) {
         new_proc->name = ((TOKEN *)term->left)->lexeme;
         if (term->right == NULL)
             new_proc->arity = 0;
-        else if (term->right == '~')
+        else if (term->right->type == '~')
             new_proc->arity = 1;
         else {
             arguments = 0;
-            _tac_generator(term->right, seq);
+            tac_generator(term->right, seq);
             new_proc->arity = arguments;
         }
+        TAC *proc = calloc(1, sizeof(TAC));
+        proc->args.proc = *new_proc;
+        proc->op = PROC_OP;
+        proc->next = NULL;
+
         // Append to TAC
-        append(seq, new_proc);
+        append(seq, proc);
     } break;
     case ',':
-        term->left->type == '~' ? arguments++ : _tac_generator(term->left, seq);
+        term->left->type == '~' ? arguments++ : tac_generator(term->left, seq);
         term->right->type == '~' ? arguments++
-                                 : _tac_generator(term->right, seq);
+                                 : tac_generator(term->right, seq);
+        break;
     case '~': {
         // Creates a Global TAC instruction
         // If the type of the left child is a leaf, then this indicates its a
         // declaration
-        if (term->left->type == LEAF && term->right->type != 'F') {
+        if (term->right->type == 'F')
+            return;
+        if (term->left->type == LEAF) {
             // Left child holds the type of the declaration
             // We ingore since we want to abstract for the mips
 
@@ -105,11 +112,176 @@ void _tac_generator(NODE *term, TAC **seq) {
             *seq = temp;
 
         } else {
-            _tac_generator(term->left, seq);
-            _tac_generator(term->right, seq);
+            tac_generator(term->left, seq);
+            tac_generator(term->right, seq);
         }
         break;
     }
+    }
+}
+
+// Sets up the local environment
+void *__tac_generator(NODE *term, TAC **seq) {
+    switch (term->type) {
+    case LEAF:
+        // Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
+        return __tac_generator(term->left, seq);
+        break;
+    case IDENTIFIER:
+    case CONSTANT:
+    case STRING_LITERAL:
+        // Interpret as TOKEN*
+        return term;
+        break;
+    case APPLY:
+        // Process calling of functions
+        break;
+    case VOID:
+    case FUNCTION:
+    case INT:
+        break;
+    case 'd':
+        // Left child is an AST for Return type
+        __tac_generator(term->left, seq);
+        // Right child is the Name and arguments
+        __tac_generator(term->right, seq);
+        break;
+    case 'D':
+        // Left child is the Function definition
+        __tac_generator(term->left, seq);
+        // Right child is the Function body
+        if (term->right != NULL) {
+            return __tac_generator(term->right, seq);
+        } else {
+            return 0;
+        }
+        break;
+    case 'F': {
+        // Left child is the Name of function
+        TAC *func = (TAC *)malloc(sizeof(TAC));
+        func->next = NULL;
+        func->op = FUNCTION;
+        func->args.call.name = __tac_generator(term->left, seq);
+        // Right child are the Arguments of function
+        // TODO: look at how many arguments and load them
+        if (term->right != NULL) {
+            __tac_generator(term->right, seq);
+        } else {
+            func->args.call.arity = 0;
+        }
+        append(seq, func);
+        break;
+    }
+    case CONTINUE:
+    case BREAK:
+        break;
+    case RETURN: {
+        // Left child is an AST of the expression whose value is to be returned
+        // TODO: handle the case where left child is identifier and the case for
+        // everything else
+        TAC *ret = (TAC *)malloc(sizeof(TAC));
+        ret->next = NULL;
+        ret->op = RETURN;
+        if (term->left != NULL) {
+            if (term->left->type == LEAF) {
+                TOKEN *temp = __tac_generator(term->left, seq);
+                if (term->left->left->type == IDENTIFIER) {
+                    ret->args.ret.type = IDENTIFIER;
+                    ret->args.ret.val.identifier = temp->lexeme;
+                } else if (term->left->left->type == CONSTANT) {
+                    ret->args.ret.type = CONSTANT;
+                    ret->args.ret.val.constant = temp->value;
+                }
+            } else {
+                ret->args.ret.type = TREG;
+                ret->args.ret.val.treg = __tac_generator(term->left, seq);
+            }
+            append(seq, ret);
+            TAC *block = (TAC *)malloc(sizeof(TAC));
+            block->next = NULL;
+            block->op = BLOCK_OP; /* This is the OP CODE for BLOCK*/
+            // TODO: make it track how many variables have been declared
+            // maybe at the end of the return
+            block->args.block.nvars = &nvars;
+            append(seq, block);
+            return *seq;
+        } else {
+            // TODO: throw an error
+            printf("Error no return type\n");
+        }
+        break;
+    }
+    case '~':
+        // Left child is the type
+        __tac_generator(term->left, seq);
+        // Right child is the variable name
+        if (term->right->type == LEAF) {
+            svars[nvars] = ((TOKEN *)__tac_generator(term->right, seq))->lexeme;
+        } else {
+            // Right child is the AST "=" and we declare the variable before
+            // assigning
+            svars[nvars] =
+                ((TOKEN *)__tac_generator(term->right->left, seq))->lexeme;
+            __tac_generator(term->right, seq);
+        }
+        nvars++;
+        break;
+    case ';':
+        // Left child is the first item or a sequence; returned values are
+        // ignored
+        __tac_generator(term->left, seq);
+        // Right child is the last item and also the return value
+        return __tac_generator(term->right, seq);
+        break;
+    case '=': {
+        // Creates TAC for rhs of expression
+        if (term->right->type == LEAF) {
+            TAC *rhs = create_load_TAC(__tac_generator(term->right, seq));
+            append(seq, rhs);
+        } else
+            __tac_generator(term->right, seq);
+
+        // Creates TAC for lhs of expression
+        TAC *lhs = create_store_TAC(__tac_generator(term->left, seq));
+        append(seq, lhs);
+        break;
+    }
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '%':
+    case '>':
+    case '<':
+    case NE_OP:
+    case EQ_OP:
+    case LE_OP:
+    case GE_OP: {
+        // Creates load TAC instructions
+        TAC *src1 = create_load_TAC(__tac_generator(term->left, seq));
+        append(seq, src1);
+
+        TAC *src2 = create_load_TAC(__tac_generator(term->right, seq));
+        append(seq, src2);
+
+        // Creates add TAC instruction
+        TAC *add = (TAC *)malloc(sizeof(TAC));
+        add->next = NULL;
+        add->op = term->type;
+
+        add->args.expr.src1 = src1->args.load.treg;
+        add->args.expr.src2 = src2->args.load.treg;
+        add->args.expr.dst = treg_generator();
+        append(seq, add);
+        return add->args.expr.dst;
+        break;
+    }
+    case IF:
+        break;
+    case WHILE:
+        break;
+    default:
+        break;
     }
 }
 
@@ -151,45 +323,6 @@ void append(TAC **seq, TAC *new_node) {
     return;
 }
 
-void appendbbb(BB *bb, TAC *new_node) {
-    new_node->next = NULL;
-
-    if (bb->leader == NULL) {
-        // alocate space for bb->leader then assign
-        bb->leader = calloc(1, sizeof(TAC *));
-        *(bb->leader) = new_node;
-        return;
-    }
-    if (*(bb->leader) == NULL) {
-        *(bb->leader) = new_node;
-        return;
-    }
-
-    TAC *last = *(bb->leader);
-    while (last->next != NULL) {
-        last = last->next;
-    }
-    last->next = new_node;
-    return;
-}
-
-BB *appendBB(BB **bb, BB *new_node) {
-    new_node->next = NULL;
-
-    if ((*bb)->leader == NULL) {
-        (*bb)->leader = new_node->leader;
-        (*bb)->next = new_node->next;
-        return *bb;
-    }
-
-    BB *last = *bb;
-    while (last->next != NULL) {
-        last = last->next;
-    }
-    last->next = new_node;
-    return last->next;
-}
-
 TAC *create_load_TAC(TOKEN *term) {
     char *treg = treg_generator();
     TAC *load = malloc(sizeof(TAC));
@@ -223,26 +356,6 @@ TAC *create_store_TAC(TOKEN *term) {
     }
     return store;
 }
-
-TAC *create_single_TAC_seq(BB *bb) {
-    TAC *new_tac = calloc(1, sizeof(TAC));
-    BB *bbtemp = bb;
-
-    TAC *temp_new_tac = new_tac;
-    while (bbtemp != NULL) {
-        TAC *temp = *(bbtemp->leader);
-        while (temp != NULL) {
-            temp_new_tac->next = temp;
-
-            temp_new_tac = temp_new_tac->next;
-            temp = temp->next;
-        }
-        bbtemp = bbtemp->next;
-    }
-    return new_tac->next;
-}
-
-// Method to make basic block sequence into one big TAC sequence
 
 // Refactor for basic blocks
 void printTAC(FILE *file, BB *bb) {
@@ -345,51 +458,5 @@ void printTAC(FILE *file, BB *bb) {
             temp = temp->next;
         }
         bbtemp = bbtemp->next;
-    }
-}
-
-void printTAC(FILE *file, TAC *seq) {
-    TAC *temp = seq;
-    while (temp != NULL) {
-        switch (temp->op) {
-        case FUNCTION:
-            fprintf(file, "proc %s ()\n", temp->args.call.name->lexeme);
-            break;
-        case BLOCK_OP:
-            fprintf(file, "endblock %d\n", *(temp->args.block.nvars));
-            break;
-        case LOAD_OP:
-            if (temp->args.load.type == IDENTIFIER)
-                fprintf(file, "load %s %s\n", temp->args.load.treg,
-                        temp->args.load.val.identifier);
-            else
-                fprintf(file, "load %s %s\n", temp->args.load.treg,
-                        temp->args.load.val.constant);
-            break;
-        case STORE_OP:
-            fprintf(file, "store %s %s\n", temp->args.store.treg,
-                    temp->args.store.value);
-            break;
-        case RETURN:
-            switch (temp->args.ret.type) {
-            case IDENTIFIER:
-                fprintf(file, "return %s\n", temp->args.ret.val.identifier);
-                break;
-            case CONSTANT:
-                fprintf(file, "return %d\n", temp->args.ret.val.constant);
-                break;
-            case TREG:
-                fprintf(file, "return %s\n", temp->args.ret.val.treg);
-                break;
-            }
-            break;
-        case '+':
-            fprintf(file, "add %s %s %s\n", temp->args.expr.src1,
-                    temp->args.expr.src2, temp->args.expr.dst);
-            break;
-        default:
-            break;
-        }
-        temp = temp->next;
     }
 }

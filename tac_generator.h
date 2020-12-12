@@ -96,7 +96,7 @@ typedef struct bb {
 } BB;
 
 void printTAC(FILE *,BB *);
-BB *tac_generator(NODE *);
+void tac_generator(NODE *, TAC **);
 char *treg_generator();
 TAC *create_single_TAC_seq(BB *);
 char* my_itoa(int);

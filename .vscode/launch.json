@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/mycc",
-            "args": ["-s","DEBUGTEST"],
+            "args": ["-t","DEBUGTEST"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

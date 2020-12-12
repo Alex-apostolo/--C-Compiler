@@ -235,7 +235,8 @@ int main(int argc, char **argv) {
         }
 
         if (tac == true) {
-            tac_generator(tree);
+            TAC **seq = calloc(1,sizeof(TAC *));
+            tac_generator(tree, seq);
             printf("\n");
             remove("RESULT.tac");
             FILE *tacfile = fopen("RESULT.tac", "a");
@@ -243,7 +244,9 @@ int main(int argc, char **argv) {
             if (tacfile == NULL)
                 fprintf(stderr,
                         "Error occured trying to create or override file");
-            //printTAC(tacfile, bb);
+            BB *bb = calloc(1,sizeof(BB));
+            bb->leader = seq;
+            printTAC(tacfile, bb);
             // Free all fields of seq
             return 0;
         }
@@ -251,8 +254,8 @@ int main(int argc, char **argv) {
         // Default action is to run the compiler
         if ((interp == false && tac == false) || mips) {
             // Make BB into one long TAC *
-            TAC *seq = calloc(1,sizeof(TAC));
-            tac_generator(tree);
+            TAC **seq = calloc(1,sizeof(TAC*));
+            tac_generator(tree,seq);
             //TAC *seq = create_single_TAC_seq(bb);
             mips_generator(seq);
             printf("\n");
