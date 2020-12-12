@@ -1,5 +1,2 @@
-int x;
-int main() {
-    int y = 5;
-    x = y;
-}
+int x = 15;
+int y;

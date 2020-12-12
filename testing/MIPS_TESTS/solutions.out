@@ -1,0 +1,140 @@
+
+$$$ TEST 1: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 2: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 3: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 4: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 5: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 6: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 7: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 8: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 9: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data
+
+$$$ TEST 10: $$$
+
+	.globl main
+	.text
+main:
+	li $a0,5
+	li $v0,17
+	syscall
+	.data
+	li $a0,153
+	li $v0,17
+	syscall
+	.data

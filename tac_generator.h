@@ -8,13 +8,9 @@
 #define LOAD_OP 279
 #define STORE_OP 280
 #define CALL_OP 281
-#define TREG 282
-
-/*Global Variables*/
-extern int ntreg;
-extern char *latest_treg;
-extern int nvars;
-extern char *svars[];
+#define PROC_OP 282
+#define GLOBAL_OP 283
+#define TREG 284
 
 typedef struct expr {
     char* src1;
@@ -27,7 +23,6 @@ typedef struct proc {
     int arity;
 } PROC;
 
-// INCLUDE 
 typedef struct call {
     TOKEN * name ; 
     int arity ;
@@ -51,6 +46,7 @@ typedef struct store {
 
 typedef struct ret {
     int type;
+    int terminal;
     union {char *identifier ; int constant ; char *treg ;} val;
 } RET;
 
@@ -67,9 +63,30 @@ typedef struct label {
     char *name;
 } LABEL;
 
+typedef struct val {
+  int type ;
+  union {
+    int integer ;
+    int boolean ; 
+    char * string ;
+  } v;
+} VAL; 
+
+typedef struct global {
+    char *name;
+    VAL *val;
+} GLOBAL;
+
+typedef struct clos {
+    NODE *body;
+    char *name;
+    // Next is for the Linked list of closures when global initialization occurs
+    struct closure *next;
+} CLOS;
+
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; LOAD load; PROC proc; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
+    union { BLOCK block ; CALL call ; LOAD load; PROC proc; GLOBAL glob; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
     struct tac * next ;
 } TAC ;
 
@@ -79,8 +96,9 @@ typedef struct bb {
 } BB;
 
 void printTAC(FILE *,BB *);
-void *tac_generator(NODE *,BB **);
+BB *tac_generator(NODE *);
 char *treg_generator();
+TAC *create_single_TAC_seq(BB *);
 char* my_itoa(int);
 
 #endif
