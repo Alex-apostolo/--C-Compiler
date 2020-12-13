@@ -1,8 +1,16 @@
 int x = 15;
+int func3() {
+    int y = 69;
+    return y;
+}
 int y;
 int func();
 int func1() {
     int x = 0;
+    int func2() {
+        int jkl = 342980;
+        return jkl;
+    }
     return x;
 }
 int z = 35;

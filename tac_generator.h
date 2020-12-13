@@ -10,7 +10,8 @@
 #define CALL_OP 281
 #define PROC_OP 282
 #define GLOBAL_OP 283
-#define TREG 284
+#define CLOS_OP 284
+#define TREG 285
 
 typedef struct expr {
     char* src1;
@@ -80,13 +81,11 @@ typedef struct global {
 typedef struct clos {
     NODE *body;
     char *name;
-    // Next is for the Linked list of closures when global initialization occurs
-    struct closure *next;
 } CLOS;
 
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; LOAD load; PROC proc; GLOBAL glob; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
+    union { BLOCK block ; CALL call ; LOAD load; PROC proc; CLOS clos; GLOBAL glob; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
     struct tac * next ;
 } TAC ;
 
