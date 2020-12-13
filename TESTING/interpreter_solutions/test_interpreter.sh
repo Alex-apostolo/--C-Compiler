@@ -1,11 +1,15 @@
 #! /bin/bash
-readonly RESULT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/interpreter_solutions/solutions.out
-readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/interpreter_solutions/solutions.in
-readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/TESTS.in
-readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
+## Change this to the root directory of the minus2C project ##
+readonly PROJECT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C
+##                            ##                            ##
+readonly RESULT=$PROJECT/TESTING/interpreter_solutions/solutions.out
+readonly SOLPATH=$PROJECT/TESTING/interpreter_solutions/solutions.in
+readonly TESTSFILE=$PROJECT/TESTING/TESTS.in
+readonly MYCC=$PROJECT/mycc
 
 rm $RESULT
 a=1
+b=1
 printf "Start Testing at: "
 date
 printf "\n### START OF OUTPUT ###\n\n"
@@ -14,11 +18,12 @@ do
 if [ "$line" != "%%" ] 
 then
 $MYCC -p <<< $line > /dev/null
-str="$a: Terminates with -> $?"
+str="TEST $a, LINE $b: Terminates with -> $?"
 echo $str
 echo $str >> $RESULT
 
 a=$((a+1))
+b=$((b+1))
 fi
 done < $TESTSFILE
 

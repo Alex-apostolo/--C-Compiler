@@ -1,5 +1,119 @@
 
-$$$ TEST 1: $$$
+$$$ TEST 1, LINE 1: $$$
+
+proc main 0
+return 53
+
+$$$ TEST 2, LINE 3: $$$
+
+proc main 0
+load t0 2
+load t1 3
+add t0 t1 t2
+return t2
+
+$$$ TEST 3, LINE 5: $$$
+
+proc main 0
+return 15
+
+$$$ TEST 4, LINE 7: $$$
+
+proc main 0
+load t0 53
+store t0 x
+load t1 x
+load t2 1
+add t1 t2 t3
+return t3
+
+$$$ TEST 5, LINE 9: $$$
+
+proc main 0
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+
+$$$ TEST 6, LINE 11: $$$
+global a 2
+
+proc third 0
+load t0 3
+store t0 d
+load t1 a
+load t2 b
+add t1 t2 t3
+load t4 13428
+load t5 c
+add t4 t5 t6
+load t7 14196
+load t8 d
+add t7 t8 t9
+return t9
+
+proc main 0
+closure first
+return (null)
+
+proc first 0
+load t10 1
+store t10 b
+closure second
+return (null)
+
+proc second 0
+load t11 2
+store t11 c
+
+$$$ TEST 7, LINE 13: $$$
+global a 2
+
+proc main 0
+closure first
+closure third
+return (null)
+
+proc first 0
+load t0 1
+store t0 b
+closure second
+return (null)
+
+proc third 0
+load t1 3
+store t1 d
+load t2 a
+load t3 b
+add t2 t3 t4
+load t5 13684
+load t6 c
+add t5 t6 t7
+load t8 14452
+load t9 d
+add t8 t9 t10
+return t10
+
+proc second 0
+load t11 2
+store t11 c
+
+$$$ TEST 8, LINE 15: $$$
+
+proc main 0
+closure func
+return (null)
+
+proc func 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+$$$ TEST 9, LINE 17: $$$
 
 proc main 0
 closure sum
@@ -18,159 +132,7 @@ load t4 d
 add t3 t4 t5
 return t5
 
-$$$ TEST 2: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 3: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 4: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 5: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 6: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 7: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 8: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 9: $$$
-
-proc main 0
-closure sum
-closure func
-return (null)
-
-proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
-
-proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
-
-$$$ TEST 10: $$$
+$$$ TEST 10, LINE 19: $$$
 
 proc main 0
 closure sum
