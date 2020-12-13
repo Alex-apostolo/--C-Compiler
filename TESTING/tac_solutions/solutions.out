@@ -1,0 +1,190 @@
+
+$$$ TEST 1: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 2: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 3: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 4: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 5: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 6: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 7: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 8: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 9: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5
+
+$$$ TEST 10: $$$
+
+proc main 0
+closure sum
+closure func
+return (null)
+
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t3 c
+load t4 d
+add t3 t4 t5
+return t5

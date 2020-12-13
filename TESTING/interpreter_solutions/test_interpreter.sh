@@ -1,7 +1,7 @@
 #! /bin/bash
-readonly RESULT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/INTERPRETER_TESTS/solutions.out
-readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/INTERPRETER_TESTS/solutions.in
-readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/INTERPRETER_TESTS/tests.in
+readonly RESULT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/interpreter_solutions/solutions.out
+readonly SOLPATH=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/interpreter_solutions/solutions.in
+readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/TESTS.in
 readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
 
 rm $RESULT

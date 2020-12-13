@@ -1,8 +1,8 @@
 #! /bin/bash
-readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/INTERPRETER_TESTS/TESTS.in
+readonly TESTSFILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/TESTS.in
 readonly MYCC=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/mycc
-readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/MIPS_TESTS/tmp_tac
-readonly OUTPUT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/MIPS_TESTS/solutions.out
+readonly FILE=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/mips_solutions/tmp_tac
+readonly OUTPUT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/TESTING/mips_solutions/solutions.out
 readonly RESULT=/Users/alex/SoftwareDevelopment/C/Compilers/minus2C/RESULT.s
 
 rm $OUTPUT
