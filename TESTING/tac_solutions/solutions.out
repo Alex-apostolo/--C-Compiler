@@ -47,27 +47,28 @@ store t0 d
 load t1 a
 load t2 b
 add t1 t2 t3
-load t4 13428
-load t5 c
-add t4 t5 t6
-load t7 14196
-load t8 d
-add t7 t8 t9
-return t9
+load t4 c
+add t3 t4 t5
+load t6 d
+add t5 t6 t7
+return t7
 
 proc main 0
 closure first
-return (null)
+t8 = call first
+return t8
 
 proc first 0
-load t10 1
-store t10 b
+load t9 1
+store t9 b
 closure second
-return (null)
+t10 = call second
+return t10
 
 proc second 0
 load t11 2
 store t11 c
+t12 = call third
 
 $$$ TEST 7, LINE 13: $$$
 global a 2
@@ -75,24 +76,24 @@ global a 2
 proc main 0
 closure first
 closure third
-return (null)
+t0 = call first
+return t0
 
 proc first 0
-load t0 1
-store t0 b
+load t1 1
+store t1 b
 closure second
-return (null)
+t2 = call second
+return t2
 
 proc third 0
-load t1 3
-store t1 d
-load t2 a
-load t3 b
-add t2 t3 t4
-load t5 13684
-load t6 c
-add t5 t6 t7
-load t8 14452
+load t3 3
+store t3 d
+load t4 a
+load t5 b
+add t4 t5 t6
+load t7 c
+add t6 t7 t8
 load t9 d
 add t8 t9 t10
 return t10
@@ -100,53 +101,57 @@ return t10
 proc second 0
 load t11 2
 store t11 c
+t12 = call third
 
 $$$ TEST 8, LINE 15: $$$
 
 proc main 0
 closure func
-return (null)
+t0 = call func
+return t0
 
 proc func 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
+load t1 a
+load t2 b
+add t1 t2 t3
+return t3
 
 $$$ TEST 9, LINE 17: $$$
 
 proc main 0
 closure sum
 closure func
-return (null)
+t0 = call func
+return t0
 
 proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
+load t1 a
+load t2 b
+add t1 t2 t3
+return t3
 
 proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
+load t4 c
+load t5 d
+add t4 t5 t6
+return t6
 
 $$$ TEST 10, LINE 19: $$$
 
 proc main 0
 closure sum
 closure func
-return (null)
+t0 = call func
+return t0
 
 proc sum 2
-load t0 a
-load t1 b
-add t0 t1 t2
-return t2
+load t1 a
+load t2 b
+add t1 t2 t3
+return t3
 
 proc func 2
-load t3 c
-load t4 d
-add t3 t4 t5
-return t5
+load t4 c
+load t5 d
+add t4 t5 t6
+return t6

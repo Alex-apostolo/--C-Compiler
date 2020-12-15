@@ -20,18 +20,24 @@ typedef struct expr {
 } EXPR;
 
 typedef struct proc {
-    TOKEN *name;
+    char *name;
     int arity;
 } PROC;
 
 typedef struct call {
-    TOKEN * name ; 
+    char * name ; 
     int arity ;
     char *store;
 } CALL ;
 
+typedef struct var {
+    char *name;
+    struct var *next;
+} VAR;
+
 typedef struct block {
-    int nvars ;
+    int *nvars ;
+    VAR **svars;
 } BLOCK ;
 
 typedef struct load {

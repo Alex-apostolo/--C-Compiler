@@ -19,22 +19,30 @@ void mips_generator(TAC *seq) {
     while (temp != NULL) {
         switch (temp->op) {
         case PROC_OP:
+            // Method for adding variables and context into stack
+            // PushAR
             // Checks if declaration of process is "main"
             // If it's "main" it sets "main" as .globl
-            strcmp(temp->args.proc.name->lexeme, "main")
-                ? fprintf(file, "\n%s:\n", temp->args.proc.name->lexeme)
+            strcmp(temp->args.proc.name, "main")
+                ? fprintf(file, "\n%s:\n", temp->args.proc.name)
                 : fprintf(file, "\t.globl main\n\t.text\nmain:\n");
-                break;
+            break;
         case CALL_OP:
-            fprintf(file, "\tjal %s\n",temp->args.call.name->lexeme);
+            // Create Activation Record and extend it like the frames
+            fprintf(file, "\n\tmove $s0, $ar\n\tjal %s\n\tmove $ra, $s0\n\n",
+                    temp->args.call.name);
             break;
-        case BLOCK_OP:
-            //fprintf(file, "\t.data\n");
+        case BLOCK_OP: {
+            // fprintf(file, "\t.data\n");
+            VAR *current = temp->args.block.svars;
             // Declare and don't set, check the type
-            //for (int i = 0; i < temp->args.block.nvars; i++) {
-            //    fprintf(file, "%s: \n", svars[i]);
-            //}
+            for (int i = 0; i < *(temp->args.block.nvars); i++) {
+                fprintf(file, "%s: \n", current->name);
+                current = current->next;
+            }
             break;
+        }
+
         case LOAD_OP:
             // change to int the value of load
             if (temp->args.load.type == IDENTIFIER)
@@ -81,19 +89,19 @@ void mips_generator(TAC *seq) {
         case GE_OP:
             switch (temp->op) {
             case '+':
-                fprintf(file,"\tadd");
+                fprintf(file, "\tadd");
                 break;
             case '-':
-                fprintf(file,"\tsub");
+                fprintf(file, "\tsub");
                 break;
             case '*':
-                fprintf(file,"\tmul");
+                fprintf(file, "\tmul");
                 break;
             case '/':
-                fprintf(file,"\tdiv");
+                fprintf(file, "\tdiv");
                 break;
             case '%':
-                fprintf(file,"\tmod");
+                fprintf(file, "\tmod");
                 break;
             case '>':
                 break;

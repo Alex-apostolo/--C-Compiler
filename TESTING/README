@@ -8,5 +8,5 @@ for interpreter, tac and mips outline the results of the compiler
 when their respective shell script is run.
 * File "solutions.in" in the "interpreter_solutions" directory shows the
 expected results of the interpreter(used for correctness testing)
-* To run the shell scripts you need to change the directories inside the .sh
-to match your current ones
+* To run the shell scripts you need to change the "PROJECT" directory inside the .sh
+to match your current one

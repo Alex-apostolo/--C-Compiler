@@ -1,16 +1,9 @@
-int x = 15;
-int func3() {
-    int y = 69;
-    return y;
-}
-int y;
-int func();
-int func1() {
-    int x = 0;
-    int func2() {
-        int jkl = 342980;
-        return jkl;
+int main() {
+    int y = 190;
+    int func() {
+        int x = 55;
+        return z;
     }
-    return x;
+    int z = 8890;
+    return func();
 }
-int z = 35;
