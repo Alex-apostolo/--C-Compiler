@@ -11,7 +11,7 @@ typedef struct value {
   union {
     int integer ;
     int boolean ; 
-    char * string ;
+    char *string ;
     CLOSURE *closure;
   } v;
 } VALUE; 
@@ -42,6 +42,7 @@ typedef struct env {
 } ENV ;
 
 VALUE* interpret(NODE*,ENV*);
+
 // Helper method for debugging, uses -b flag to print the global bindings
 void print_bindings(FRAME *);
 
