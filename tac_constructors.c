@@ -111,9 +111,10 @@ VAL *val_create(int type, void *v) {
     return new_val;
 }
 
-GLOBAL *global_create(char *name, VAL *val) {
+GLOBAL *global_create(char *name, int type, VAL *val) {
     GLOBAL *new_global = calloc(1, sizeof(GLOBAL));
     new_global->name = name;
+    new_global->type = type;
     new_global->val = val;
     return new_global;
 }

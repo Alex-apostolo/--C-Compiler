@@ -95,6 +95,7 @@ typedef struct val {
 
 typedef struct global {
     char *name;
+    int type;
     VAL *val;
 } GLOBAL;
 

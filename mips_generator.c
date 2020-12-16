@@ -26,14 +26,22 @@ void mips_generator(TAC *seq) {
     fprintf(file, "\t.data\n");
     TAC *temp = seq;
     while (temp->op == GLOBAL_OP) {
-        switch (temp->args.glob->val->type) {
-        case CONSTANT:
-            fprintf(file, "%s: .word %d\n", temp->args.glob->name,
-                    temp->args.glob->val->v.integer);
+        switch (temp->args.glob->type) {
+        case INT:
+            if (temp->args.glob->val == NULL) {
+                fprintf(file, "%s: .word 0\n", temp->args.glob->name);
+            } else {
+                fprintf(file, "%s: .word %d\n", temp->args.glob->name,
+                        temp->args.glob->val->v.integer);
+            }
             break;
         case STRING_LITERAL:
-            fprintf(file, "%s: .asciiz %s\n", temp->args.glob->name,
-                    temp->args.glob->val->v.string);
+            if (temp->args.glob->val == NULL) {
+                fprintf(file, "%s: .asciiz ""\n", temp->args.glob->name);
+            } else {
+                fprintf(file, "%s: .asciiz %s\n", temp->args.glob->name,
+                        temp->args.glob->val->v.string);
+            }
             break;
             // case BOOLEAN:
         }
@@ -89,10 +97,9 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
         case RET_OP:
             switch (temp->args.ret->type) {
             case IDENTIFIER: {
-                char *regis = treg_generator();
-                fprintf(file,
-                        "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                        regis, temp->args.ret->val.identifier, regis);
+                // fprintf(file,
+                        // "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                        // , temp->args.ret->val.identifier, regis);
                 break;
             }
             case CONSTANT:
@@ -105,7 +112,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                 break;
             }
             // Restore everything from AR
-            if(!is_main)
+            if (!is_main)
                 print_restoreAR(file, *ar);
             break;
         case '+':

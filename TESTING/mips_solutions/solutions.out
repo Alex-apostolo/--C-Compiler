@@ -57,6 +57,18 @@ main:
 
 $$$ TEST 5, LINE 9: $$$
 
+	.data
+
+	.text
+	.globl main
+
+main:
+	li $t0,1
+	sw $t0,x
+	lw $t1,x
+	li $t2,32
+	add $t3,$t1,$t2
+	sw $t3,x
 
 $$$ TEST 6, LINE 11: $$$
 

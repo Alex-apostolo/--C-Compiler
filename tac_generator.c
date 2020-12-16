@@ -72,15 +72,16 @@ void _tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
             // Left child holds the type of the declaration
             // We ingore since we want to abstract for the mips
 
+            // To understand the below assingmnets run the -f flag and go through the AST
             GLOBAL *new_global;
             if (term->right->type == LEAF)
                 // Right child is the name of the declaration
                 new_global =
-                    global_create(((TOKEN *)term->right->left)->lexeme, NULL);
+                    global_create(((TOKEN *)term->right->left)->lexeme, term->left->left->type, NULL);
             else if (term->right->type == '=') {
                 // Right child is the Node "="
                 new_global = global_create(
-                    ((TOKEN *)term->right->left->left)->lexeme, NULL);
+                    ((TOKEN *)term->right->left->left)->lexeme, term->left->left->type, NULL);
                 // switch on right Node to get the value
                 switch (term->right->right->left->type) {
                 case CONSTANT: {
