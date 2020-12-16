@@ -1,9 +1,1 @@
-int main() {
-    int y = 190;
-    int func() {
-        int x = 55;
-        return z;
-    }
-    int z = 8890;
-    return func();
-}
+int main() { return 2+3; }

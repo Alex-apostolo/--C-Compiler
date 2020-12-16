@@ -1,16 +1,21 @@
 
 proc main 0
-block 6
-load t0 190
-store t0 y
+block 3
+closure sum
 closure func
-load t1 8890
-store t1 z
-t2 = call func
-return t2
+t0 = call func
+return t0
 
-proc func 0
-block 2
-load t3 55
-store t3 x
-return z
+proc sum 2
+block 3
+load t1 a
+load t2 b
+add t1 t2 t3
+return t3
+
+proc func 2
+block 3
+load t4 c
+load t5 d
+add t4 t5 t6
+return t6

@@ -2,11 +2,13 @@
 $$$ TEST 1, LINE 1: $$$
 
 proc main 0
+block 0
 return 53
 
 $$$ TEST 2, LINE 3: $$$
 
 proc main 0
+block 3
 load t0 2
 load t1 3
 add t0 t1 t2
@@ -15,11 +17,13 @@ return t2
 $$$ TEST 3, LINE 5: $$$
 
 proc main 0
+block 0
 return 15
 
 $$$ TEST 4, LINE 7: $$$
 
 proc main 0
+block 5
 load t0 53
 store t0 x
 load t1 x
@@ -30,6 +34,7 @@ return t3
 $$$ TEST 5, LINE 9: $$$
 
 proc main 0
+block 6
 load t0 1
 store t0 x
 load t1 x
@@ -42,6 +47,7 @@ $$$ TEST 6, LINE 11: $$$
 global a 2
 
 proc third 0
+block 11
 load t0 3
 store t0 d
 load t1 a
@@ -54,11 +60,13 @@ add t5 t6 t7
 return t7
 
 proc main 0
+block 11
 closure first
 t8 = call first
 return t8
 
 proc first 0
+block 4
 load t9 1
 store t9 b
 closure second
@@ -66,6 +74,7 @@ t10 = call second
 return t10
 
 proc second 0
+block 3
 load t11 2
 store t11 c
 t12 = call third
@@ -74,12 +83,14 @@ $$$ TEST 7, LINE 13: $$$
 global a 2
 
 proc main 0
+block 3
 closure first
 closure third
 t0 = call first
 return t0
 
 proc first 0
+block 4
 load t1 1
 store t1 b
 closure second
@@ -87,6 +98,7 @@ t2 = call second
 return t2
 
 proc third 0
+block 9
 load t3 3
 store t3 d
 load t4 a
@@ -99,6 +111,7 @@ add t8 t9 t10
 return t10
 
 proc second 0
+block 3
 load t11 2
 store t11 c
 t12 = call third
@@ -106,11 +119,13 @@ t12 = call third
 $$$ TEST 8, LINE 15: $$$
 
 proc main 0
+block 2
 closure func
 t0 = call func
 return t0
 
 proc func 2
+block 3
 load t1 a
 load t2 b
 add t1 t2 t3
@@ -119,18 +134,21 @@ return t3
 $$$ TEST 9, LINE 17: $$$
 
 proc main 0
+block 3
 closure sum
 closure func
 t0 = call func
 return t0
 
 proc sum 2
+block 3
 load t1 a
 load t2 b
 add t1 t2 t3
 return t3
 
 proc func 2
+block 3
 load t4 c
 load t5 d
 add t4 t5 t6
@@ -139,18 +157,21 @@ return t6
 $$$ TEST 10, LINE 19: $$$
 
 proc main 0
+block 3
 closure sum
 closure func
 t0 = call func
 return t0
 
 proc sum 2
+block 3
 load t1 a
 load t2 b
 add t1 t2 t3
 return t3
 
 proc func 2
+block 3
 load t4 c
 load t5 d
 add t4 t5 t6

@@ -1,8 +1,10 @@
 #ifndef __TAC_G
 #define __TAC_G
 #include "token.h"
+#include "C.tab.h"
 #include "nodes.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define BLOCK_OP 278
 #define LOAD_OP 279
@@ -11,7 +13,11 @@
 #define PROC_OP 282
 #define GLOBAL_OP 283
 #define CLOS_OP 284
-#define TREG 285
+#define LABEL_OP 285
+#define RET_OP 286
+#define IF_OP 287
+#define GOTO_OP 288
+#define TREG 289
 
 typedef struct expr {
     char* src1;
@@ -53,7 +59,6 @@ typedef struct store {
 
 typedef struct ret {
     int type;
-    int terminal;
     union {char *identifier ; int constant ; char *treg ;} val;
 } RET;
 
@@ -91,7 +96,7 @@ typedef struct clos {
 
 typedef struct tac {
     int op ;
-    union { BLOCK block ; CALL call ; LOAD load; PROC proc; CLOS clos; GLOBAL glob; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
+    union { BLOCK *block ; CALL *call ; LOAD *load; PROC *proc; CLOS *clos; GLOBAL *glob; STORE *store; EXPR *expr; RET *ret; IF_ *if_; GOTO *goto_; LABEL *label;} args ;
     struct tac * next ;
 } TAC ;
 
