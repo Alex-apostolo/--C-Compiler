@@ -100,6 +100,10 @@ typedef struct tac {
     struct tac * next ;
 } TAC ;
 
+// typedef struct tac_env {
+
+// } TAC_ENV;
+
 typedef struct bb {
     TAC **leader;
     struct bb *next;
@@ -108,7 +112,6 @@ typedef struct bb {
 void printTAC(FILE *,BB *);
 void tac_generator(NODE *, TAC **);
 char *treg_generator();
-TAC *create_single_TAC_seq(BB *);
 char* my_itoa(int);
 
 #endif

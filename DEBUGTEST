@@ -1,1 +1,7 @@
-int main() { return 2+3; }
+int main() {
+    int x = 5 + 135;
+    return x;
+}
+int func() {
+    return 78 + 90 - 43 +33;
+}

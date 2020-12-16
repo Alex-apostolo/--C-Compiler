@@ -29,6 +29,8 @@ void tac_generator(NODE *term, TAC **seq) {
     TAC *last = *seq;
     while (last->next != NULL) {
         if (last->op == CLOS_OP) {
+            ntreg = 0;
+            arguments = 0;
             svars = calloc(1, sizeof(VAR *));
             nvars = calloc(1, sizeof(int));
             _tac_generator(last->args.clos->body, seq);
@@ -45,6 +47,10 @@ void _tac_generator(NODE *term, TAC **seq) {
         _tac_generator(term->left, seq);
         // Call the right for the body of the proc
         __tac_generator(term->right, seq);
+        ntreg = 0;
+        arguments = 0;
+        svars = calloc(1, sizeof(VAR *));
+        nvars = calloc(1, sizeof(int));
         break;
     case 'd':
         // Right child is 'F'
@@ -109,10 +115,6 @@ void _tac_generator(NODE *term, TAC **seq) {
                 }
             }
             // // Prepends TAC instruction to sequence
-            // TAC *temp = calloc(1, sizeof(TAC));
-            // temp->op = GLOBAL_OP;
-            // temp->args.glob = global;
-            // temp->next = *seq;
             *seq = tac_create(GLOBAL_OP, new_global, *seq);
         } else {
             _tac_generator(term->left, seq);
@@ -190,7 +192,8 @@ void *__tac_generator(NODE *term, TAC **seq) {
         // Left child is the type
         __tac_generator(term->left, seq);
         // Right child is the variable name
-        __tac_generator(term->right, seq);
+        TOKEN *identifier = __tac_generator(term->right, seq);
+        appendVAR(svars, var_create(identifier->lexeme, NULL));
         break;
     case ';':
         // Left child is the first item or a sequence; returned values are
@@ -210,6 +213,10 @@ void *__tac_generator(NODE *term, TAC **seq) {
         // Creates TAC for lhs of expression
         TAC *lhs = create_store_TAC(__tac_generator(term->left, seq));
         append(seq, lhs);
+        TOKEN *new_tok = calloc(1,sizeof(TOKEN));
+        new_tok->type = IDENTIFIER;
+        new_tok->lexeme = lhs->args.store->value;
+        return new_tok;
         break;
     }
     case '+':
@@ -338,7 +345,6 @@ TAC *create_load_TAC(TOKEN *term) {
 TAC *create_store_TAC(TOKEN *term) {
     STORE *new_store = store_create(latest_treg, NULL);
     if (term->type == IDENTIFIER) {
-        appendVAR(svars, var_create(term->lexeme, NULL));
         new_store = store_create(latest_treg, term->lexeme);
     } else {
         char *temp = malloc(100 * sizeof(char));

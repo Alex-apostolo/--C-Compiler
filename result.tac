@@ -8,14 +8,14 @@ return t0
 
 proc sum 2
 block 3
-load t1 a
-load t2 b
-add t1 t2 t3
-return t3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
 
 proc func 2
 block 3
-load t4 c
-load t5 d
-add t4 t5 t6
-return t6
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2

@@ -17,7 +17,7 @@ return t2
 $$$ TEST 3, LINE 5: $$$
 
 proc main 0
-block 0
+block 3
 return 15
 
 $$$ TEST 4, LINE 7: $$$
@@ -34,7 +34,7 @@ return t3
 $$$ TEST 5, LINE 9: $$$
 
 proc main 0
-block 6
+block 5
 load t0 1
 store t0 x
 load t1 x
@@ -47,7 +47,7 @@ $$$ TEST 6, LINE 11: $$$
 global a 2
 
 proc third 0
-block 11
+block 9
 load t0 3
 store t0 d
 load t1 a
@@ -60,24 +60,24 @@ add t5 t6 t7
 return t7
 
 proc main 0
-block 11
+block 2
 closure first
-t8 = call first
-return t8
+t0 = call first
+return t0
 
 proc first 0
 block 4
-load t9 1
-store t9 b
+load t0 1
+store t0 b
 closure second
-t10 = call second
-return t10
+t1 = call second
+return t1
 
 proc second 0
 block 3
-load t11 2
-store t11 c
-t12 = call third
+load t0 2
+store t0 c
+t1 = call third
 
 $$$ TEST 7, LINE 13: $$$
 global a 2
@@ -91,30 +91,30 @@ return t0
 
 proc first 0
 block 4
-load t1 1
-store t1 b
+load t0 1
+store t0 b
 closure second
-t2 = call second
-return t2
+t1 = call second
+return t1
 
 proc third 0
 block 9
-load t3 3
-store t3 d
-load t4 a
-load t5 b
-add t4 t5 t6
-load t7 c
-add t6 t7 t8
-load t9 d
-add t8 t9 t10
-return t10
+load t0 3
+store t0 d
+load t1 a
+load t2 b
+add t1 t2 t3
+load t4 c
+add t3 t4 t5
+load t6 d
+add t5 t6 t7
+return t7
 
 proc second 0
 block 3
-load t11 2
-store t11 c
-t12 = call third
+load t0 2
+store t0 c
+t1 = call third
 
 $$$ TEST 8, LINE 15: $$$
 
@@ -126,10 +126,10 @@ return t0
 
 proc func 2
 block 3
-load t1 a
-load t2 b
-add t1 t2 t3
-return t3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
 
 $$$ TEST 9, LINE 17: $$$
 
@@ -142,17 +142,17 @@ return t0
 
 proc sum 2
 block 3
-load t1 a
-load t2 b
-add t1 t2 t3
-return t3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
 
 proc func 2
 block 3
-load t4 c
-load t5 d
-add t4 t5 t6
-return t6
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2
 
 $$$ TEST 10, LINE 19: $$$
 
@@ -165,14 +165,14 @@ return t0
 
 proc sum 2
 block 3
-load t1 a
-load t2 b
-add t1 t2 t3
-return t3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
 
 proc func 2
 block 3
-load t4 c
-load t5 d
-add t4 t5 t6
-return t6
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2
