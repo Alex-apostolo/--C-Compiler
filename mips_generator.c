@@ -39,11 +39,13 @@ void mips_generator(TAC *seq) {
         }
         temp = temp->next;
     }
-    fprintf(file, "\n\t.text\n\t.globl main");
+    fprintf(file, "\n\t.text\n\t.globl main\n");
 
     AR **ar = calloc(1, sizeof(AR *));
     _mips_generator(seq, file, ar);
 }
+
+int is_main = 0;
 
 void _mips_generator(TAC *seq, FILE *file, AR **ar) {
     TAC *temp = seq;
@@ -51,6 +53,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
         switch (temp->op) {
         case PROC_OP:
             fprintf(file, "\n%s:\n", temp->args.proc->name);
+            is_main = strcmp(temp->args.call->name, "main") == 0;
             break;
         case CALL_OP:
             // Copies return address to stack register, jumps to the function,
@@ -61,13 +64,12 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                     temp->args.call->name);
             break;
         case BLOCK_OP: {
-            // IF ITS NOT MAIN
-
-            // Create an AR
-            *ar = activation_record_create(*(temp->args.block->svars));
-
-            // Print pushing everything on AR into stack
-            printAR(file, *ar);
+            // Create an Activation Record if its not main
+            if (!is_main) {
+                *ar = activation_record_create(*(temp->args.block->svars));
+                // Print pushing everything on AR into stack
+                printAR(file, *ar);
+            }
             break;
         }
 
@@ -103,7 +105,8 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                 break;
             }
             // Restore everything from AR
-            print_restoreAR(file, *ar);
+            if(!is_main)
+                print_restoreAR(file, *ar);
             break;
         case '+':
         case '-':
@@ -253,8 +256,10 @@ void print_restoreAR(FILE *file, AR *ar) {
     int offset = 0;
     // Print ra
     fprintf(file,
-            "\t# Function Body ends here\n\n\t# Restore Caller Activation Record from the stack"
-            "\n\tlw $s0, %d($sp)\n", offset);
+            "\t# Function Body ends here\n\n\t# Restore Caller Activation "
+            "Record from the stack"
+            "\n\tlw $s0, %d($sp)\n",
+            offset);
     offset = offset + 4;
     // Print params
     VAR *temp = ar->params;
@@ -266,7 +271,7 @@ void print_restoreAR(FILE *file, AR *ar) {
     // Print locals
     temp = ar->locals;
     while (temp != NULL) {
-        fprintf(file, "\tlw %s, %d($sp)\n", temp->name, offset);
+        fprintf(file, "\tlw %d($sp), %s\n", offset, temp->name);
         offset = offset + 4;
         temp = temp->next;
     }

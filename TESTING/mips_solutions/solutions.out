@@ -1,82 +1,87 @@
 
 $$$ TEST 1, LINE 1: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 4
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
+	li $a0,53
+	li $v0,17
+	syscall
 
 $$$ TEST 2, LINE 3: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 	li $t0,2
 	li $t1,3
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
 
 $$$ TEST 3, LINE 5: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
+	li $a0,15
+	li $v0,17
+	syscall
 
 $$$ TEST 4, LINE 7: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 24
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 	li $t0,53
 	sw $t0,x
 	lw $t1,x
 	li $t2,1
 	add $t3,$t1,$t2
+	move $a0,$t3
+	li $v0,17
+	syscall
 
 $$$ TEST 5, LINE 9: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
-
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 24
-sw $s0, 0($sp)
-	li $t0,1
-	sw $t0,x
-	lw $t1,x
-	li $t2,32
-	add $t3,$t1,$t2
-	sw $t3,x
 
 $$$ TEST 6, LINE 11: $$$
 
+	.data
+a: .word 2
+
+	.text
+	.globl main
 
 third:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 40
+	sw $s0, 0($sp)
+	sw d, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
+	sw $t2, 16($sp)
+	sw $t3, 20($sp)
+	sw $t4, 24($sp)
+	sw $t5, 28($sp)
+	sw $t6, 32($sp)
+	sw $t7, 36($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 40
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,3
 	sw $t0,d
 	lw $t1,a
@@ -86,26 +91,45 @@ sw $s0, 0($sp)
 	add $t5,$t3,$t4
 	lw $t6,d
 	add $t7,$t5,$t6
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	move $a0,$t7
+	li $v0,17
+	syscall
+	# Function Body ends here
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 12
-sw $s0, 0($sp)
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw 4($sp), d
+	lw $t0, 8($sp)
+	lw $t1, 12($sp)
+	lw $t2, 16($sp)
+	lw $t3, 20($sp)
+	lw $t4, 24($sp)
+	lw $t5, 28($sp)
+	lw $t6, 32($sp)
+	lw $t7, 36($sp)
+	add $sp, $sp, 40
+
+main:
 
 	move $s0, $ra
 	jal first
 	move $ra, $s0
 
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 first:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 20
+	sw $s0, 0($sp)
+	sw b, 4($sp)
+	sw second, 8($sp)
+	sw $t0, 12($sp)
+	sw $t1, 16($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 20
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,1
 	sw $t0,b
 
@@ -113,13 +137,29 @@ sw $s0, 0($sp)
 	jal second
 	move $ra, $s0
 
+	move $a0,$t1
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw 4($sp), b
+	lw 8($sp), second
+	lw $t0, 12($sp)
+	lw $t1, 16($sp)
+	add $sp, $sp, 20
 
 second:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw c, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,2
 	sw $t0,c
 
@@ -130,26 +170,33 @@ sw $s0, 0($sp)
 
 $$$ TEST 7, LINE 13: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
+a: .word 2
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 
 	move $s0, $ra
 	jal first
 	move $ra, $s0
 
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 first:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 20
+	sw $s0, 0($sp)
+	sw b, 4($sp)
+	sw second, 8($sp)
+	sw $t0, 12($sp)
+	sw $t1, 16($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 20
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,1
 	sw $t0,b
 
@@ -157,13 +204,35 @@ sw $s0, 0($sp)
 	jal second
 	move $ra, $s0
 
+	move $a0,$t1
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw 4($sp), b
+	lw 8($sp), second
+	lw $t0, 12($sp)
+	lw $t1, 16($sp)
+	add $sp, $sp, 20
 
 third:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 40
+	sw $s0, 0($sp)
+	sw d, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
+	sw $t2, 16($sp)
+	sw $t3, 20($sp)
+	sw $t4, 24($sp)
+	sw $t5, 28($sp)
+	sw $t6, 32($sp)
+	sw $t7, 36($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 40
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,3
 	sw $t0,d
 	lw $t1,a
@@ -173,13 +242,34 @@ sw $s0, 0($sp)
 	add $t5,$t3,$t4
 	lw $t6,d
 	add $t7,$t5,$t6
+	move $a0,$t7
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw 4($sp), d
+	lw $t0, 8($sp)
+	lw $t1, 12($sp)
+	lw $t2, 16($sp)
+	lw $t3, 20($sp)
+	lw $t4, 24($sp)
+	lw $t5, 28($sp)
+	lw $t6, 32($sp)
+	lw $t7, 36($sp)
+	add $sp, $sp, 40
 
 second:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw c, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	li $t0,2
 	sw $t0,c
 
@@ -190,98 +280,176 @@ sw $s0, 0($sp)
 
 $$$ TEST 8, LINE 15: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 12
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 
 	move $s0, $ra
 	jal func
 	move $ra, $s0
 
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 func:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	add $sp, $sp, 16
 
 $$$ TEST 9, LINE 17: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 
 	move $s0, $ra
 	jal func
 	move $ra, $s0
 
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 sum:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	add $sp, $sp, 16
 
 func:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	add $sp, $sp, 16
 
 $$$ TEST 10, LINE 19: $$$
 
-	.globl main
-	.text
-main:
-# Push the current Activation Record/Frame into stack
+	.data
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	.text
+	.globl main
+
+main:
 
 	move $s0, $ra
 	jal func
 	move $ra, $s0
 
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 sum:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	add $sp, $sp, 16
 
 func:
-# Push the current Activation Record/Frame into stack
+	# Push Caller Activation Record to stack
+	# $s0 temporary storage for $ra
+	sub $sp, $sp, 16
+	sw $s0, 0($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
 
-# Register $s0 is temporarely used for storing $ra
-sub $sp, $sp, 16
-sw $s0, 0($sp)
+	# Function Body starts here
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
+	move $a0,$t2
+	li $v0,17
+	syscall
+	# Function Body ends here
+
+	# Restore Caller Activation Record from the stack
+	lw $s0, 0($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	add $sp, $sp, 16
