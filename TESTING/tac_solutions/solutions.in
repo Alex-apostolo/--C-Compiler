@@ -1,0 +1,178 @@
+
+$$$ TEST 1, LINE 1: $$$
+
+proc main 0
+block 0
+return 53
+
+$$$ TEST 2, LINE 3: $$$
+
+proc main 0
+block 3
+load t0 2
+load t1 3
+add t0 t1 t2
+return t2
+
+$$$ TEST 3, LINE 5: $$$
+
+proc main 0
+block 3
+return 15
+
+$$$ TEST 4, LINE 7: $$$
+
+proc main 0
+block 5
+load t0 53
+store t0 x
+load t1 x
+load t2 1
+add t1 t2 t3
+return t3
+
+$$$ TEST 5, LINE 9: $$$
+
+proc main 0
+block 5
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+
+$$$ TEST 6, LINE 11: $$$
+global a 2
+
+proc third 0
+block 9
+load t0 3
+store t0 d
+load t1 a
+load t2 b
+add t1 t2 t3
+load t4 c
+add t3 t4 t5
+load t6 d
+add t5 t6 t7
+return t7
+
+proc main 0
+block 2
+closure first
+t0 = call first
+return t0
+
+proc first 0
+block 4
+load t0 1
+store t0 b
+closure second
+t1 = call second
+return t1
+
+proc second 0
+block 3
+load t0 2
+store t0 c
+t1 = call third
+
+$$$ TEST 7, LINE 13: $$$
+global a 2
+
+proc main 0
+block 3
+closure first
+closure third
+t0 = call first
+return t0
+
+proc first 0
+block 4
+load t0 1
+store t0 b
+closure second
+t1 = call second
+return t1
+
+proc third 0
+block 9
+load t0 3
+store t0 d
+load t1 a
+load t2 b
+add t1 t2 t3
+load t4 c
+add t3 t4 t5
+load t6 d
+add t5 t6 t7
+return t7
+
+proc second 0
+block 3
+load t0 2
+store t0 c
+t1 = call third
+
+$$$ TEST 8, LINE 15: $$$
+
+proc main 0
+block 2
+closure func
+t0 = call func
+return t0
+
+proc func 2
+block 3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+$$$ TEST 9, LINE 17: $$$
+
+proc main 0
+block 3
+closure sum
+closure func
+t0 = call func
+return t0
+
+proc sum 2
+block 3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+block 3
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2
+
+$$$ TEST 10, LINE 19: $$$
+
+proc main 0
+block 3
+closure sum
+closure func
+t0 = call func
+return t0
+
+proc sum 2
+block 3
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+block 3
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2

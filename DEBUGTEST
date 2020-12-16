@@ -1,7 +1,17 @@
-int main() {
-    int x = 5 + 135;
-    return x;
+int a = 2;
+int third() {
+    int d = 3;
+    return a + b + c + d;
 }
-int func() {
-    return 78 + 90 - 43 +33;
+int main() {
+    int first() {
+        int b = 1;
+
+        int second() {
+            int c = 2;
+            third();
+        }
+        return second();
+    }
+    return first();
 }

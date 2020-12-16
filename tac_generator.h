@@ -100,9 +100,15 @@ typedef struct tac {
     struct tac * next ;
 } TAC ;
 
-// typedef struct tac_env {
-
-// } TAC_ENV;
+typedef struct env_tac {
+    int ntreg;
+    char *latest_treg;
+    int nlabel;
+    char *latest_label;
+    int arguments;
+    int *nvars;
+    VAR **svars;
+} ENV_TAC;
 
 typedef struct bb {
     TAC **leader;

@@ -185,3 +185,26 @@ BB *bb_create(TAC **leader, BB *next) {
     new_bb->next = next;
     return new_bb;
 }
+
+ENV_TAC *env_tac_create_empty() {
+    ENV_TAC *new_env = calloc(1,sizeof(ENV_TAC));
+    new_env->ntreg = 0;
+    new_env->latest_treg = "";
+    new_env->nlabel = 0;
+    new_env->latest_treg = "";
+    new_env->arguments = 0;
+    new_env->svars = calloc(1, sizeof(VAR *));
+    new_env->nvars = calloc(1, sizeof(int));
+    return new_env;
+}
+
+ENV_TAC *env_tac_clear(ENV_TAC *env) {
+    env->ntreg = 0;
+    env->latest_treg = "";
+    env->nlabel = 0;
+    env->latest_treg = "";
+    env->arguments = 0;
+    env->svars = calloc(1, sizeof(VAR *));
+    env->nvars = calloc(1, sizeof(int));
+    return env;
+}
