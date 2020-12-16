@@ -142,7 +142,7 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         CLOS *new_clos = clos_create(term, ((TOKEN *)term->left->right->left->left)->lexeme);
         append(seq, tac_create(CLOS_OP, new_clos,NULL));
         // Appends to svars, similar funciton to bindings in interpreter
-        appendVAR(env->svars, var_create(new_clos->name, NULL),env);
+        appendVAR(env->svars, var_create(new_clos->name, IDENTIFIER, NULL),env);
         break;
     }
     case CONTINUE:
@@ -175,7 +175,7 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         __tac_generator(term->left, seq, env);
         // Right child is the variable name
         TOKEN *identifier = __tac_generator(term->right, seq, env);
-        appendVAR(env->svars, var_create(identifier->lexeme, NULL),env);
+        appendVAR(env->svars, var_create(identifier->lexeme, IDENTIFIER, NULL),env);
         break;
     case ';':
         // Left child is the first item or a sequence; returned values are
@@ -260,7 +260,7 @@ char *treg_generator(ENV_TAC *env) {
     snprintf(str, sizeof(str), "t%d", env->ntreg++);
     env->latest_treg = str;
     // Append register to svars
-    appendVAR(env->svars, var_create(str, NULL),env);
+    appendVAR(env->svars, var_create(str, TREG, NULL),env);
     return str;
 }
 

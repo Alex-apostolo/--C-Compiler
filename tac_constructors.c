@@ -23,9 +23,10 @@ CALL *call_create(char *name, int arity, char *store) {
     return new_call;
 }
 
-VAR *var_create(char *name, VAR *next) {
+VAR *var_create(char *name,int type, VAR *next) {
     VAR *new_var = calloc(1, sizeof(VAR));
     new_var->name = name;
+    new_var->type = type;
     new_var->next = next;
     return new_var;
 }

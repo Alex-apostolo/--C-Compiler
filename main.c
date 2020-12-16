@@ -256,8 +256,7 @@ int main(int argc, char **argv) {
             // Make BB into one long TAC *
             TAC **seq = calloc(1,sizeof(TAC*));
             tac_generator(tree,seq);
-            //TAC *seq = create_single_TAC_seq(bb);
-            mips_generator(seq);
+            mips_generator(*seq);
             printf("\n");
             return 0;
         }
