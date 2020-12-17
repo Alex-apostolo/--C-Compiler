@@ -41,6 +41,7 @@ main:
 $$$ TEST 4, LINE 7: $$$
 
 	.data
+x:
 
 	.text
 	.globl main
@@ -58,6 +59,7 @@ main:
 $$$ TEST 5, LINE 9: $$$
 
 	.data
+x:
 
 	.text
 	.globl main
@@ -69,6 +71,10 @@ main:
 	li $t2,32
 	add $t3,$t1,$t2
 	sw $t3,x
+	lw $t0,x
+	move $a0,$t0
+	li $v0,17
+	syscall
 
 $$$ TEST 6, LINE 11: $$$
 
@@ -77,6 +83,9 @@ $$$ TEST 7, LINE 13: $$$
 
 	.data
 a: .word 2
+b:
+d:
+c:
 
 	.text
 	.globl main

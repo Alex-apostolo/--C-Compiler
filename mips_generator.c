@@ -12,6 +12,7 @@ void _mips_generator(TAC *, FILE *, AR **);
 void caller_print_ar(FILE *, AR *);
 void callee_print_ar(FILE *, AR *);
 void callee_print_restore_ar(FILE *, AR *);
+int add_variable(char **, char *, int);
 
 void mips_generator(TAC *seq) {
     if (seq == NULL)
@@ -26,28 +27,42 @@ void mips_generator(TAC *seq) {
     // Add global variables to .data
     fprintf(file, "\t.data\n");
     TAC *temp = seq;
-    while (temp->op == GLOBAL_OP) {
-        switch (temp->args.glob->type) {
-        case INT:
-            if (temp->args.glob->val == NULL) {
-                fprintf(file, "%s: .word 0\n", temp->args.glob->name);
-            } else {
-                fprintf(file, "%s: .word %d\n", temp->args.glob->name,
-                        temp->args.glob->val->v.integer);
+    // Maximum variables is 100
+    int length = 100;
+    char **added_variables = calloc(length, sizeof(char *));
+
+    // If its Global or if its Store add it to .data
+    while (temp != NULL) {
+        if (temp->op == GLOBAL_OP) {
+            switch (temp->args.glob->type) {
+            case INT:
+                if (temp->args.glob->val == NULL) {
+                    fprintf(file, "%s: .word 0\n", temp->args.glob->name);
+                } else {
+                    fprintf(file, "%s: .word %d\n", temp->args.glob->name,
+                            temp->args.glob->val->v.integer);
+                }
+                break;
+            case STRING_LITERAL:
+                if (temp->args.glob->val == NULL) {
+                    fprintf(file,
+                            "%s: .asciiz "
+                            "\n",
+                            temp->args.glob->name);
+                } else {
+                    fprintf(file, "%s: .asciiz %s\n", temp->args.glob->name,
+                            temp->args.glob->val->v.string);
+                }
+                break;
+                // case BOOLEAN:
             }
-            break;
-        case STRING_LITERAL:
-            if (temp->args.glob->val == NULL) {
-                fprintf(file,
-                        "%s: .asciiz "
-                        "\n",
-                        temp->args.glob->name);
-            } else {
-                fprintf(file, "%s: .asciiz %s\n", temp->args.glob->name,
-                        temp->args.glob->val->v.string);
+            add_variable(added_variables, temp->args.glob->name, length);
+        }
+        if(temp->op == STORE_OP) {
+            // If it doesnt exist already add it
+            if(add_variable(added_variables, temp->args.store->value, length)){
+                fprintf(file, "%s:\n", temp->args.store->value);
             }
-            break;
-            // case BOOLEAN:
         }
         temp = temp->next;
     }
@@ -97,9 +112,11 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
 
             switch (temp->args.ret->type) {
             case IDENTIFIER: {
-                // fprintf(file,
-                // "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                // , temp->args.ret->val.identifier, regis);
+                char *regis = "t0";
+                fprintf(file,
+                        "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                        regis, temp->args.ret->val.identifier,
+                        regis);
                 break;
             }
             case CONSTANT:
@@ -291,4 +308,20 @@ void callee_print_restore_ar(FILE *file, AR *ar) {
         temp = temp->next;
     }
     fprintf(file, "\t # Jump instruction\n");
+}
+
+// This function checks if the variable in check exists in the array of variables
+// Returns 1 if successfully added to the array
+int add_variable(char **added_variables, char *new_string, int length){
+    char *temp = *added_variables;
+    for(int i = 0; i < length - 1; i++) {
+        if(added_variables[i] == NULL){
+            added_variables[i] = new_string;
+            return 1;
+        }
+        if(strcmp(added_variables[i],new_string) == 0) {
+            return 0;
+        }
+    }
+    return 0;
 }
