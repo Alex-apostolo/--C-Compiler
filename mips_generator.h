@@ -5,13 +5,14 @@
 void mips_generator(TAC *);
 
 typedef struct ar {
-    // callers return address is stored at s0
-    char *ra;
-    // static link
+    char *fp;
     VAR *params;
+    int params_size;
     VAR *locals;
+    int locals_size;
     VAR *tregs;
-    int size;
+    int tregs_size;
+    char *ra;
 }AR;
 
 #endif

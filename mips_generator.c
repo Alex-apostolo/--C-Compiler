@@ -6,8 +6,6 @@
 #include <string.h>
 #define OUTPUT "RESULT.s"
 
-void printAR(FILE *, AR *);
-void print_restoreAR(FILE *, AR *);
 AR *activation_record_create(VAR *);
 void appendMIPSVAR(VAR **, VAR *);
 void _mips_generator(TAC *, FILE *, AR **);
@@ -37,7 +35,10 @@ void mips_generator(TAC *seq) {
             break;
         case STRING_LITERAL:
             if (temp->args.glob->val == NULL) {
-                fprintf(file, "%s: .asciiz ""\n", temp->args.glob->name);
+                fprintf(file,
+                        "%s: .asciiz "
+                        "\n",
+                        temp->args.glob->name);
             } else {
                 fprintf(file, "%s: .asciiz %s\n", temp->args.glob->name,
                         temp->args.glob->val->v.string);
@@ -62,22 +63,17 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
         case PROC_OP:
             fprintf(file, "\n%s:\n", temp->args.proc->name);
             is_main = strcmp(temp->args.call->name, "main") == 0;
+
+            if (!is_main) {
+                callee_print_ar(file, *ar);
+            }
             break;
         case CALL_OP:
-            // Copies return address to stack register, jumps to the function,
-            // and copies stack register to return address register.
-            // We do this to ensure that callee knows which is the return
-            // address of the caller.
-            fprintf(file, "\n\tmove $s0, $ra\n\tjal %s\n\tmove $ra, $s0\n\n",
-                    temp->args.call->name);
+            *ar = activation_record_create(*(temp->args.block->svars));
+            caller_print_ar(file, *ar);
+            fprintf(file, "\tjal %s\n", temp->args.call->name);
             break;
         case BLOCK_OP: {
-            // Create an Activation Record if its not main
-            if (!is_main) {
-                *ar = activation_record_create(*(temp->args.block->svars));
-                // Print pushing everything on AR into stack
-                printAR(file, *ar);
-            }
             break;
         }
 
@@ -98,8 +94,8 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             switch (temp->args.ret->type) {
             case IDENTIFIER: {
                 // fprintf(file,
-                        // "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                        // , temp->args.ret->val.identifier, regis);
+                // "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                // , temp->args.ret->val.identifier, regis);
                 break;
             }
             case CONSTANT:
@@ -113,7 +109,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             }
             // Restore everything from AR
             if (!is_main)
-                print_restoreAR(file, *ar);
+                callee_print_restore_ar(file, *ar);
             break;
         case '+':
         case '-':
@@ -192,102 +188,104 @@ void appendMIPSVAR(VAR **seq, VAR *new_node) {
     return;
 }
 
+// This function is used right before we call a function
 AR *activation_record_create(VAR *vars) {
     AR *new_ar = calloc(1, sizeof(AR));
     VAR **params = calloc(1, sizeof(VAR));
+    int params_size = 0;
     VAR **locals = calloc(1, sizeof(VAR));
+    int locals_size = 0;
     VAR **tregs = calloc(1, sizeof(VAR));
-    int size = 0;
+    int tregs_size = 0;
 
     VAR *temp = vars;
     while (temp != NULL) {
         switch (temp->type) {
         case IDENTIFIER:
             appendMIPSVAR(locals, mipsvar_create(temp->name, IDENTIFIER, NULL));
-            size++;
+            locals_size++;
             break;
         case TREG:
             appendMIPSVAR(tregs, mipsvar_create(temp->name, TREG, NULL));
-            size++;
+            tregs_size++;
             break;
         case AREG:
             appendMIPSVAR(params, mipsvar_create(temp->name, AREG, NULL));
-            size++;
+            params_size++;
             break;
         }
         temp = temp->next;
     }
-    new_ar->ra = "$s0";
-    size++;
-    new_ar->size = 4 * size;
     new_ar->params = *params;
+    new_ar->params_size = 4 * params_size;
     new_ar->locals = *locals;
+    new_ar->locals_size = 4 * locals_size;
     new_ar->tregs = *tregs;
+    new_ar->tregs_size = 4 * tregs_size;
     return new_ar;
 }
 
-void printAR(FILE *file, AR *ar) {
-    int offset = 0;
-    // Print ra
-    fprintf(file,
-            "\t# Push Caller Activation Record to stack\n\t# "
-            "$s0 temporary storage for $ra\n\tsub $sp, "
-            "$sp, %d\n\tsw $s0, %d($sp)\n",
-            ar->size, offset);
-    offset = offset + 4;
-    // Print params
+void caller_print_ar(FILE *file, AR *ar) {
+    // Print the arguments
     VAR *temp = ar->params;
-    while (temp != NULL) {
-        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, offset);
-        offset = offset + 4;
+    int params_size = ar->params_size;
+    for (int i = 0; (i * 4) < params_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+                    params_size);
+        }
+        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
-    // Print locals
-    temp = ar->locals;
-    while (temp != NULL) {
-        fprintf(file, "\tsw %s, %d($sp)\n", temp->name, offset);
-        offset = offset + 4;
+
+    // Print the temporaries
+    VAR *temp = ar->tregs;
+    int tregs_size = ar->tregs_size;
+    for (int i = 0; (i * 4) < tregs_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+                    tregs_size);
+        }
+        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
-    // Print tregs
-    temp = ar->tregs;
-    while (temp != NULL) {
-        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, offset);
-        offset = offset + 4;
-        temp = temp->next;
-    }
-    fprintf(file, "\n\t# Function Body starts here\n");
+    fprintf(file, "\t # Jump instruction\n");
 }
 
-void print_restoreAR(FILE *file, AR *ar) {
-    int offset = 0;
-    // Print ra
-    fprintf(file,
-            "\t# Function Body ends here\n\n\t# Restore Caller Activation "
-            "Record from the stack"
-            "\n\tlw $s0, %d($sp)\n",
-            offset);
-    offset = offset + 4;
-    // Print params
+void callee_print_ar(FILE *file, AR *ar) {
+    // Push $ra, old $fp to the stack and set new $fp
+    fprintf(file, "\t# Push $ra and old $fp\n\tadd $sp, $sp, "
+                  "-8\n\tsw $fp, 4($sp)\n\tsw $ra, 0($sp)\n\t# New frame "
+                  "pointer\n\tadd $fp, $sp, -8\n");
+    // Implement for saved registers $s0 etc
+}
+
+void callee_print_restore_ar(FILE *file, AR *ar) {
+    // Restore $ra
+    fprintf(file, "\t# Restore $ra\n\tlw $ra, 0($fp)\n");
+
+    // Restore temporaries
+    VAR *temp = ar->tregs;
+    int tregs_size = ar->tregs_size;
+    for (int i = 0; (i * 4) < tregs_size; i++) {
+        if (i == tregs_size) {
+            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+                    tregs_size);
+        }
+        fprintf(file, "\tlw $%s, %d($)\n", temp->name, (i * 4));
+        temp = temp->next;
+    }
+    fprintf(file, "\t # Jump instruction\n");
+
+    // Restore arguments
     VAR *temp = ar->params;
-    while (temp != NULL) {
-        fprintf(file, "\tlw $%s, %d($sp)\n", temp->name, offset);
-        offset = offset + 4;
+    int params_size = ar->params_size;
+    for (int i = 0; (i * 4) < params_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+                    params_size);
+        }
+        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
-    // Print locals
-    temp = ar->locals;
-    while (temp != NULL) {
-        fprintf(file, "\tlw %d($sp), %s\n", offset, temp->name);
-        offset = offset + 4;
-        temp = temp->next;
-    }
-    // Print tregs
-    temp = ar->tregs;
-    while (temp != NULL) {
-        fprintf(file, "\tlw $%s, %d($sp)\n", temp->name, offset);
-        offset = offset + 4;
-        temp = temp->next;
-    }
-    fprintf(file, "\tadd $sp, $sp, %d\n", ar->size);
 }
