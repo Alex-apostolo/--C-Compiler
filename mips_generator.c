@@ -107,7 +107,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             break;
         case RET_OP:
             // Restore everything from AR
-            if (!is_main)
+            if (!is_main && *ar != 0)
                 callee_print_restore_ar(file, *ar);
 
             switch (temp->args.ret->type) {
@@ -265,6 +265,18 @@ void caller_print_ar(FILE *file, AR *ar) {
                     tregs_size);
         }
         fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
+        temp = temp->next;
+    }
+
+    // Print the locals
+    temp = ar->locals;
+    int locals_size = ar->locals_size;
+    for (int i = 0; (i * 4) < locals_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Push locals\n\tadd $sp, $sp, -%d\n",
+                    locals_size);
+        }
+        fprintf(file, "\tsw %s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
     fprintf(file, "\t # Jump instruction\n");

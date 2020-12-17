@@ -4,7 +4,7 @@
 char *treg_generator();
 char *label_generator();
 TAC *create_load_TAC(TOKEN *, ENV_TAC *);
-TAC *create_store_TAC(TOKEN *, ENV_TAC *);
+TAC *create_store_TAC(TOKEN *, ENV_TAC *, TAC **);
 void appendVAR(VAR **, VAR *, ENV_TAC *);
 void append(TAC **, TAC *);
 void _tac_generator(NODE *, TAC **, ENV_TAC *);
@@ -137,8 +137,6 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         // Make closure tac for function definition
         CLOS *new_clos = clos_create(term, ((TOKEN *)term->left->right->left->left)->lexeme);
         append(seq, tac_create(CLOS_OP, new_clos,NULL));
-        // Appends to svars, similar funciton to bindings in interpreter
-        appendVAR(env->svars, var_create(new_clos->name, IDENTIFIER, NULL),env);
         break;
     }
     case CONTINUE:
@@ -189,7 +187,7 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         } else
             __tac_generator(term->right, seq, env);
         // Creates TAC for lhs of expression
-        TAC *lhs = create_store_TAC(__tac_generator(term->left, seq, env),env);
+        TAC *lhs = create_store_TAC(__tac_generator(term->left, seq, env),env,seq);
         append(seq, lhs);
         TOKEN *new_tok = calloc(1,sizeof(TOKEN));
         new_tok->type = IDENTIFIER;
@@ -320,7 +318,7 @@ TAC *create_load_TAC(TOKEN *term, ENV_TAC *env) {
     return tac_create(LOAD_OP, new_load, NULL);
 }
 
-TAC *create_store_TAC(TOKEN *term, ENV_TAC *env) {
+TAC *create_store_TAC(TOKEN *term, ENV_TAC *env, TAC **seq) {
     STORE *new_store = store_create(env->latest_treg, NULL);
     if (term->type == IDENTIFIER) {
         new_store = store_create(env->latest_treg, term->lexeme);

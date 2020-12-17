@@ -1,1 +1,17 @@
-int main() { int x = 1; x = x + 32; return x;}
+int a = 2;
+int third() {
+    int d = 3;
+    return a + b + c + d;
+}
+int main() {
+    int first() {
+        int b = 1;
+
+        int second() {
+            int c = 2;
+            third();
+        }
+        return second();
+    }
+    return first();
+}

@@ -78,6 +78,101 @@ main:
 
 $$$ TEST 6, LINE 11: $$$
 
+	.data
+a: .word 2
+d:
+b:
+c:
+
+	.text
+	.globl main
+
+third:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
+
+	li $t0,3
+	sw $t0,d
+	lw $t1,a
+	lw $t2,b
+	add $t3,$t1,$t2
+	lw $t4,c
+	add $t5,$t3,$t4
+	lw $t6,d
+	add $t7,$t5,$t6
+	move $a0,$t7
+	li $v0,17
+	syscall
+
+main:
+
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	 # Jump instruction
+	jal first
+
+	move $a0,$t0
+	li $v0,17
+	syscall
+
+first:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
+
+	li $t0,1
+	sw $t0,b
+
+	# Push t registers
+	add $sp, $sp, -8
+	sw $t0, 0($sp)
+	sw $t1, 4($sp)
+	# Push locals
+	add $sp, $sp, -4
+	sw b, 0($sp)
+	 # Jump instruction
+	jal second
+
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
+	 # Jump instruction
+	move $a0,$t1
+	li $v0,17
+	syscall
+
+second:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
+
+	li $t0,2
+	sw $t0,c
+
+	# Push t registers
+	add $sp, $sp, -8
+	sw $t0, 0($sp)
+	sw $t1, 4($sp)
+	# Push locals
+	add $sp, $sp, -4
+	sw c, 0($sp)
+	 # Jump instruction
+	jal third
+
 
 $$$ TEST 7, LINE 13: $$$
 
@@ -117,6 +212,9 @@ first:
 	add $sp, $sp, -8
 	sw $t0, 0($sp)
 	sw $t1, 4($sp)
+	# Push locals
+	add $sp, $sp, -4
+	sw b, 0($sp)
 	 # Jump instruction
 	jal second
 
@@ -174,6 +272,9 @@ second:
 	add $sp, $sp, -8
 	sw $t0, 0($sp)
 	sw $t1, 4($sp)
+	# Push locals
+	add $sp, $sp, -4
+	sw c, 0($sp)
 	 # Jump instruction
 	jal third
 
