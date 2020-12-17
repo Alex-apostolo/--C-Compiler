@@ -9,6 +9,9 @@
 AR *activation_record_create(VAR *);
 void appendMIPSVAR(VAR **, VAR *);
 void _mips_generator(TAC *, FILE *, AR **);
+void caller_print_ar(FILE *, AR *);
+void callee_print_ar(FILE *, AR *);
+void callee_print_restore_ar(FILE *, AR *);
 
 void mips_generator(TAC *seq) {
     if (seq == NULL)
@@ -69,13 +72,10 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             }
             break;
         case CALL_OP:
-            *ar = activation_record_create(*(temp->args.block->svars));
+            *ar = activation_record_create(*(temp->args.call->svars));
             caller_print_ar(file, *ar);
-            fprintf(file, "\tjal %s\n", temp->args.call->name);
+            fprintf(file, "\tjal %s\n\n", temp->args.call->name);
             break;
-        case BLOCK_OP: {
-            break;
-        }
 
         case LOAD_OP:
             // change to int the value of load
@@ -91,6 +91,10 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                     temp->args.store->value);
             break;
         case RET_OP:
+            // Restore everything from AR
+            if (!is_main)
+                callee_print_restore_ar(file, *ar);
+
             switch (temp->args.ret->type) {
             case IDENTIFIER: {
                 // fprintf(file,
@@ -107,9 +111,6 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                         temp->args.ret->val.treg);
                 break;
             }
-            // Restore everything from AR
-            if (!is_main)
-                callee_print_restore_ar(file, *ar);
             break;
         case '+':
         case '-':
@@ -226,6 +227,7 @@ AR *activation_record_create(VAR *vars) {
 }
 
 void caller_print_ar(FILE *file, AR *ar) {
+    fprintf(file, "\n");
     // Print the arguments
     VAR *temp = ar->params;
     int params_size = ar->params_size;
@@ -237,13 +239,12 @@ void caller_print_ar(FILE *file, AR *ar) {
         fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
-
     // Print the temporaries
-    VAR *temp = ar->tregs;
+    temp = ar->tregs;
     int tregs_size = ar->tregs_size;
     for (int i = 0; (i * 4) < tregs_size; i++) {
         if (i == 0) {
-            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+            fprintf(file, "\t# Push t registers\n\tadd $sp, $sp, -%d\n",
                     tregs_size);
         }
         fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
@@ -255,27 +256,14 @@ void caller_print_ar(FILE *file, AR *ar) {
 void callee_print_ar(FILE *file, AR *ar) {
     // Push $ra, old $fp to the stack and set new $fp
     fprintf(file, "\t# Push $ra and old $fp\n\tadd $sp, $sp, "
-                  "-8\n\tsw $fp, 4($sp)\n\tsw $ra, 0($sp)\n\t# New frame "
-                  "pointer\n\tadd $fp, $sp, -8\n");
+                  "-8\n\tsw $ra, 0($sp)\n\tsw $fp, 4($sp)\n\t# New frame "
+                  "pointer\n\tadd $fp, $sp, -8\n\n");
     // Implement for saved registers $s0 etc
 }
 
 void callee_print_restore_ar(FILE *file, AR *ar) {
     // Restore $ra
-    fprintf(file, "\t# Restore $ra\n\tlw $ra, 0($fp)\n");
-
-    // Restore temporaries
-    VAR *temp = ar->tregs;
-    int tregs_size = ar->tregs_size;
-    for (int i = 0; (i * 4) < tregs_size; i++) {
-        if (i == tregs_size) {
-            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
-                    tregs_size);
-        }
-        fprintf(file, "\tlw $%s, %d($)\n", temp->name, (i * 4));
-        temp = temp->next;
-    }
-    fprintf(file, "\t # Jump instruction\n");
+    fprintf(file, "\n\t# Restore $ra\n\tlw $ra, -4($fp)\n");
 
     // Restore arguments
     VAR *temp = ar->params;
@@ -288,4 +276,19 @@ void callee_print_restore_ar(FILE *file, AR *ar) {
         fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
         temp = temp->next;
     }
+
+    // Restore temporaries
+    temp = ar->tregs;
+    int tregs_size = ar->tregs_size;
+    for (int i = 0; (i * 4) < tregs_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Restore t registers\n");
+        }
+        if ((i * 4) == tregs_size) {
+            fprintf(file, "\tadd $sp, $sp, %d\n", tregs_size);
+        }
+        fprintf(file, "\tlw $%s, %d($fp)\n", temp->name, ((i + 1) * 4));
+        temp = temp->next;
+    }
+    fprintf(file, "\t # Jump instruction\n");
 }

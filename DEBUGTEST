@@ -1,1 +1,11 @@
-int main() { int x = 1; x = x + 32; return x;}
+int p = 35;
+int main() {
+    int x = 35;
+    int y = 145;
+    int z = 39;
+    func();
+    return 69;
+}
+int func() {
+    return 153;
+}

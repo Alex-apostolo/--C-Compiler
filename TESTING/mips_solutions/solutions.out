@@ -72,113 +72,6 @@ main:
 
 $$$ TEST 6, LINE 11: $$$
 
-	.data
-a: .word 2
-
-	.text
-	.globl main
-
-third:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 40
-	sw $s0, 0($sp)
-	sw d, 4($sp)
-	sw $t0, 8($sp)
-	sw $t1, 12($sp)
-	sw $t2, 16($sp)
-	sw $t3, 20($sp)
-	sw $t4, 24($sp)
-	sw $t5, 28($sp)
-	sw $t6, 32($sp)
-	sw $t7, 36($sp)
-
-	# Function Body starts here
-	li $t0,3
-	sw $t0,d
-	lw $t1,a
-	lw $t2,b
-	add $t3,$t1,$t2
-	lw $t4,c
-	add $t5,$t3,$t4
-	lw $t6,d
-	add $t7,$t5,$t6
-	move $a0,$t7
-	li $v0,17
-	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw 4($sp), d
-	lw $t0, 8($sp)
-	lw $t1, 12($sp)
-	lw $t2, 16($sp)
-	lw $t3, 20($sp)
-	lw $t4, 24($sp)
-	lw $t5, 28($sp)
-	lw $t6, 32($sp)
-	lw $t7, 36($sp)
-	add $sp, $sp, 40
-
-main:
-
-	move $s0, $ra
-	jal first
-	move $ra, $s0
-
-	move $a0,$t0
-	li $v0,17
-	syscall
-
-first:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 20
-	sw $s0, 0($sp)
-	sw b, 4($sp)
-	sw second, 8($sp)
-	sw $t0, 12($sp)
-	sw $t1, 16($sp)
-
-	# Function Body starts here
-	li $t0,1
-	sw $t0,b
-
-	move $s0, $ra
-	jal second
-	move $ra, $s0
-
-	move $a0,$t1
-	li $v0,17
-	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw 4($sp), b
-	lw 8($sp), second
-	lw $t0, 12($sp)
-	lw $t1, 16($sp)
-	add $sp, $sp, 20
-
-second:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw c, 4($sp)
-	sw $t0, 8($sp)
-	sw $t1, 12($sp)
-
-	# Function Body starts here
-	li $t0,2
-	sw $t0,c
-
-	move $s0, $ra
-	jal third
-	move $ra, $s0
-
 
 $$$ TEST 7, LINE 13: $$$
 
@@ -190,61 +83,53 @@ a: .word 2
 
 main:
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	 # Jump instruction
 	jal first
-	move $ra, $s0
 
 	move $a0,$t0
 	li $v0,17
 	syscall
 
 first:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 20
-	sw $s0, 0($sp)
-	sw b, 4($sp)
-	sw second, 8($sp)
-	sw $t0, 12($sp)
-	sw $t1, 16($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	li $t0,1
 	sw $t0,b
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -8
+	sw $t0, 0($sp)
+	sw $t1, 4($sp)
+	 # Jump instruction
 	jal second
-	move $ra, $s0
 
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
+	 # Jump instruction
 	move $a0,$t1
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw 4($sp), b
-	lw 8($sp), second
-	lw $t0, 12($sp)
-	lw $t1, 16($sp)
-	add $sp, $sp, 20
 
 third:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 40
-	sw $s0, 0($sp)
-	sw d, 4($sp)
-	sw $t0, 8($sp)
-	sw $t1, 12($sp)
-	sw $t2, 16($sp)
-	sw $t3, 20($sp)
-	sw $t4, 24($sp)
-	sw $t5, 28($sp)
-	sw $t6, 32($sp)
-	sw $t7, 36($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	li $t0,3
 	sw $t0,d
 	lw $t1,a
@@ -254,40 +139,34 @@ third:
 	add $t5,$t3,$t4
 	lw $t6,d
 	add $t7,$t5,$t6
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
+	 # Jump instruction
 	move $a0,$t7
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw 4($sp), d
-	lw $t0, 8($sp)
-	lw $t1, 12($sp)
-	lw $t2, 16($sp)
-	lw $t3, 20($sp)
-	lw $t4, 24($sp)
-	lw $t5, 28($sp)
-	lw $t6, 32($sp)
-	lw $t7, 36($sp)
-	add $sp, $sp, 40
 
 second:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw c, 4($sp)
-	sw $t0, 8($sp)
-	sw $t1, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	li $t0,2
 	sw $t0,c
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -8
+	sw $t0, 0($sp)
+	sw $t1, 4($sp)
+	 # Jump instruction
 	jal third
-	move $ra, $s0
 
 
 $$$ TEST 8, LINE 15: $$$
@@ -299,38 +178,36 @@ $$$ TEST 8, LINE 15: $$$
 
 main:
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	 # Jump instruction
 	jal func
-	move $ra, $s0
 
 	move $a0,$t0
 	li $v0,17
 	syscall
 
 func:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw $t0, 4($sp)
-	sw $t1, 8($sp)
-	sw $t2, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	 # Jump instruction
 	move $a0,$t2
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw $t0, 4($sp)
-	lw $t1, 8($sp)
-	lw $t2, 12($sp)
-	add $sp, $sp, 16
 
 $$$ TEST 9, LINE 17: $$$
 
@@ -341,63 +218,57 @@ $$$ TEST 9, LINE 17: $$$
 
 main:
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	 # Jump instruction
 	jal func
-	move $ra, $s0
 
 	move $a0,$t0
 	li $v0,17
 	syscall
 
 sum:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw $t0, 4($sp)
-	sw $t1, 8($sp)
-	sw $t2, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	 # Jump instruction
 	move $a0,$t2
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw $t0, 4($sp)
-	lw $t1, 8($sp)
-	lw $t2, 12($sp)
-	add $sp, $sp, 16
 
 func:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw $t0, 4($sp)
-	sw $t1, 8($sp)
-	sw $t2, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	 # Jump instruction
 	move $a0,$t2
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw $t0, 4($sp)
-	lw $t1, 8($sp)
-	lw $t2, 12($sp)
-	add $sp, $sp, 16
 
 $$$ TEST 10, LINE 19: $$$
 
@@ -408,60 +279,54 @@ $$$ TEST 10, LINE 19: $$$
 
 main:
 
-	move $s0, $ra
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	 # Jump instruction
 	jal func
-	move $ra, $s0
 
 	move $a0,$t0
 	li $v0,17
 	syscall
 
 sum:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw $t0, 4($sp)
-	sw $t1, 8($sp)
-	sw $t2, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	 # Jump instruction
 	move $a0,$t2
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw $t0, 4($sp)
-	lw $t1, 8($sp)
-	lw $t2, 12($sp)
-	add $sp, $sp, 16
 
 func:
-	# Push Caller Activation Record to stack
-	# $s0 temporary storage for $ra
-	sub $sp, $sp, 16
-	sw $s0, 0($sp)
-	sw $t0, 4($sp)
-	sw $t1, 8($sp)
-	sw $t2, 12($sp)
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, -8
 
-	# Function Body starts here
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
+
+	# Restore $ra
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	 # Jump instruction
 	move $a0,$t2
 	li $v0,17
 	syscall
-	# Function Body ends here
-
-	# Restore Caller Activation Record from the stack
-	lw $s0, 0($sp)
-	lw $t0, 4($sp)
-	lw $t1, 8($sp)
-	lw $t2, 12($sp)
-	add $sp, $sp, 16

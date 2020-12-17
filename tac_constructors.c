@@ -15,11 +15,13 @@ PROC *proc_create(char *name, int arity) {
     return new_proc;
 }
 
-CALL *call_create(char *name, int arity, char *store) {
+CALL *call_create(char *name, int arity, char *store, int *nvars, VAR **svars) {
     CALL *new_call = calloc(1, sizeof(CALL));
     new_call->name = name;
     new_call->arity = arity;
     new_call->store = store;
+    new_call->nvars = nvars;
+    new_call->svars = svars;
     return new_call;
 }
 
@@ -29,13 +31,6 @@ VAR *var_create(char *name,int type, VAR *next) {
     new_var->type = type;
     new_var->next = next;
     return new_var;
-}
-
-BLOCK *block_create(int *nvars, VAR **svars) {
-    BLOCK *new_block = calloc(1, sizeof(BLOCK));
-    new_block->nvars = nvars;
-    new_block->svars = svars;
-    return new_block;
 }
 
 LOAD *load_create(char *treg, int type, void *val) {
@@ -131,9 +126,6 @@ TAC *tac_create(int op, void *args, TAC *next) {
     new_tac->op = op;
     new_tac->next = next;
     switch (op) {
-    case BLOCK_OP:
-        new_tac->args.block = (BLOCK *)args;
-        break;
     case CALL_OP:
         new_tac->args.call = (CALL *)args;
         break;

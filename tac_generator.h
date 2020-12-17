@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BLOCK_OP 278
 #define LOAD_OP 279
 #define STORE_OP 280
 #define CALL_OP 281
@@ -31,22 +30,19 @@ typedef struct proc {
     int arity;
 } PROC;
 
-typedef struct call {
-    char *name;
-    int arity;
-    char *store;
-} CALL;
-
 typedef struct var {
     char *name;
     int type;
     struct var *next;
 } VAR;
 
-typedef struct block {
+typedef struct call {
+    char *name;
+    int arity;
+    char *store;
     int *nvars;
     VAR **svars;
-} BLOCK;
+} CALL;
 
 typedef struct load {
     char *treg;
@@ -107,7 +103,6 @@ typedef struct clos {
 typedef struct tac {
     int op;
     union {
-        BLOCK *block;
         CALL *call;
         LOAD *load;
         PROC *proc;

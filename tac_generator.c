@@ -53,11 +53,6 @@ void _tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         }
         // Append to TAC
         append(seq, tac_create(PROC_OP, new_proc, NULL));
-
-        // Make BLOCK
-        BLOCK *new_block = block_create(env->nvars, env->svars);
-        // Append to TAC
-        append(seq, tac_create(BLOCK_OP, new_block, NULL));
     } break;
     case ',':
         term->left->type == '~' ? env->arguments++ : _tac_generator(term->left, seq, env);
@@ -123,7 +118,7 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         break;
     case APPLY: {
         // Creates a call TAC for the function: this will be a ja in MIPS
-        CALL *new_call = call_create(((TOKEN *)term->left->left)->lexeme, 0, treg_generator(env));
+        CALL *new_call = call_create(((TOKEN *)term->left->left)->lexeme, 0, treg_generator(env), env->nvars, env->svars);
         append(seq, tac_create(CALL_OP, new_call, NULL));
         return env->latest_treg;
         break;
@@ -351,9 +346,6 @@ void printTAC(FILE *file, BB *bb) {
             case CALL_OP:
                 fprintf(file, "%s = call %s\n", temp->args.call->store,
                         temp->args.call->name);
-                break;
-            case BLOCK_OP:
-                fprintf(file, "block %d\n", *(temp->args.block->nvars));
                 break;
             case GLOBAL_OP:
                 temp->args.glob->val == NULL
