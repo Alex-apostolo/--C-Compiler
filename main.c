@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
                 break;
                 case STRING_LITERAL:
                 printf("'%s'\n",exit_code->v.string);
-                return exit_code->v.string;
+                return -3;
                 break;
                 case FUNCTION:
                 printf("func\n");

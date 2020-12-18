@@ -1,10 +1,22 @@
 #include "tac_generator.h"
 char *treg_generator();
-char *label_generator();
+char *label_generator(ENV_TAC *);
 TAC *create_load_TAC(TOKEN *, ENV_TAC *);
 TAC *create_store_TAC(TOKEN *, ENV_TAC *, TAC **);
 void appendVAR(VAR **, VAR *, ENV_TAC *);
 void append(TAC **, TAC *);
+
+/**
+ * Helper functions for environment
+ * Append TAC to seqeunce
+ * Create store TAC
+ * Create load TAC
+ * Print TAC sequence
+ * Append VAR to a VAR sequence
+ * treg and label generators
+ * 
+**/
+
 
 // Integer to Ascii
 char *my_itoa(int num) {
