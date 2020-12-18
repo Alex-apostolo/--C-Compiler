@@ -13,6 +13,10 @@ void caller_print_ar(FILE *, AR *);
 void callee_print_ar(FILE *, AR *);
 void callee_print_restore_ar(FILE *, AR *);
 int add_variable(char **, char *, int);
+char *mips_treg_generator();
+
+int ntreg = 0;
+char *latest_treg;
 
 void mips_generator(TAC *seq) {
     if (seq == NULL)
@@ -58,9 +62,11 @@ void mips_generator(TAC *seq) {
             }
             add_variable(added_variables, temp->args.glob->name, length);
         }
-        if(temp->op == STORE_OP) {
+        if (temp->op == STORE_OP) {
             // If it doesnt exist already add it
-            if(add_variable(added_variables, temp->args.store->value, length)){
+            // TODO: Refactor to accept Strings
+            if (add_variable(added_variables, temp->args.store->value,
+                             length)) {
                 fprintf(file, "%s:\n", temp->args.store->value);
             }
         }
@@ -112,20 +118,29 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
 
             switch (temp->args.ret->type) {
             case IDENTIFIER: {
-                char *regis = "t0";
-                fprintf(file,
-                        "\tlw $%s,%s\n\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                        regis, temp->args.ret->val.identifier,
-                        regis);
+                // Since we have already saved the registers i can use the first
+                // one
+                char *treg = "t0";
+                fprintf(file, "\tlw $%s, %s\n", treg,
+                        temp->args.ret->val.identifier);
+                is_main ? fprintf(file,
+                                  "\tmove $a0, $%s\n\tli $v0, 17\n\tsyscall\n",
+                                  treg)
+                        : fprintf(file, "\tmove $v0, $%s\n\tjr $ra\n", treg);
                 break;
             }
             case CONSTANT:
-                fprintf(file, "\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",
-                        temp->args.ret->val.constant);
+                is_main ? fprintf(file, "\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",
+                                  temp->args.ret->val.constant)
+                        : fprintf(file, "\tli $v0,%d\n\tjr $ra\n",
+                                  temp->args.ret->val.constant);
                 break;
             case TREG:
-                fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                        temp->args.ret->val.treg);
+                is_main
+                    ? fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                              temp->args.ret->val.treg)
+                    : fprintf(file, "\tmove $v0,$%s\n\tjr $ra\n",
+                              temp->args.ret->val.treg);
                 break;
             }
             break;
@@ -240,6 +255,7 @@ AR *activation_record_create(VAR *vars) {
     new_ar->locals_size = 4 * locals_size;
     new_ar->tregs = *tregs;
     new_ar->tregs_size = 4 * tregs_size;
+    new_ar->stack_size = new_ar->params_size + new_ar->locals_size + new_ar->tregs_size + 8; 
     return new_ar;
 }
 
@@ -276,9 +292,11 @@ void caller_print_ar(FILE *file, AR *ar) {
             fprintf(file, "\t# Push locals\n\tadd $sp, $sp, -%d\n",
                     locals_size);
         }
-        fprintf(file, "\tsw %s, %d($sp)\n", temp->name, (i * 4));
+        fprintf(file, "\tlw $%s, %s\n\tsw $%s, %d($sp)\n",
+                mips_treg_generator(), temp->name, latest_treg, (i * 4));
         temp = temp->next;
     }
+    ntreg = 0;
     fprintf(file, "\t # Jump instruction\n");
 }
 
@@ -286,23 +304,25 @@ void callee_print_ar(FILE *file, AR *ar) {
     // Push $ra, old $fp to the stack and set new $fp
     fprintf(file, "\t# Push $ra and old $fp\n\tadd $sp, $sp, "
                   "-8\n\tsw $ra, 0($sp)\n\tsw $fp, 4($sp)\n\t# New frame "
-                  "pointer\n\tadd $fp, $sp, -8\n\n");
+                  "pointer\n\tadd $fp, $sp, 8\n\n");
     // Implement for saved registers $s0 etc
 }
 
 void callee_print_restore_ar(FILE *file, AR *ar) {
-    // Restore $ra
-    fprintf(file, "\n\t# Restore $ra\n\tlw $ra, -4($fp)\n");
 
-    // Restore arguments
-    VAR *temp = ar->params;
-    int params_size = ar->params_size;
-    for (int i = 0; (i * 4) < params_size; i++) {
+    fprintf(file, "\n");
+    int offset = 0;
+
+    // Restore locals
+    VAR *temp = ar->locals;
+    int locals_size = ar->locals_size;
+    for (int i = 0; (i * 4) < locals_size; i++) {
         if (i == 0) {
-            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
-                    params_size);
+            fprintf(file, "\t# Restore locals\n");
         }
-        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (i * 4));
+        fprintf(file, "\tlw $%s, %d($fp)\n\tsw $%s, %s\n",
+                mips_treg_generator(), (offset * 4), latest_treg, temp->name);
+        offset++;
         temp = temp->next;
     }
 
@@ -313,27 +333,55 @@ void callee_print_restore_ar(FILE *file, AR *ar) {
         if (i == 0) {
             fprintf(file, "\t# Restore t registers\n");
         }
-        if ((i * 4) == tregs_size) {
-            fprintf(file, "\tadd $sp, $sp, %d\n", tregs_size);
-        }
-        fprintf(file, "\tlw $%s, %d($fp)\n", temp->name, ((i + 1) * 4));
+        fprintf(file, "\tlw $%s, %d($fp)\n", temp->name, (offset * 4));
+        offset++;
         temp = temp->next;
     }
+
+    // Restore arguments
+    temp = ar->params;
+    int params_size = ar->params_size;
+    for (int i = 0; (i * 4) < params_size; i++) {
+        if (i == 0) {
+            fprintf(file, "\t# Push arguments\n\tadd $sp, $sp, -%d\n",
+                    params_size);
+        }
+        fprintf(file, "\tsw $%s, %d($sp)\n", temp->name, (offset * 4));
+        offset++;
+        temp = temp->next;
+    }
+
+    // Restore $ra
+    fprintf(file, "\t# Restore $ra\n\tlw $ra, -8($fp)\n");
+    // Restore $fp
+    fprintf(file, "\t# Restore $fp\n\tlw $fp, -4($fp)\n");
+    // Restore $sp
+    fprintf(file, "\t# Restore $sp\n\tadd $sp, $sp, %d\n",ar->stack_size);
+
     fprintf(file, "\t # Jump instruction\n");
 }
 
-// This function checks if the variable in check exists in the array of variables
-// Returns 1 if successfully added to the array
-int add_variable(char **added_variables, char *new_string, int length){
+// This function checks if the variable in check exists in the array of
+// variables Returns 1 if successfully added to the array
+int add_variable(char **added_variables, char *new_string, int length) {
     char *temp = *added_variables;
-    for(int i = 0; i < length - 1; i++) {
-        if(added_variables[i] == NULL){
+    for (int i = 0; i < length - 1; i++) {
+        if (added_variables[i] == NULL) {
             added_variables[i] = new_string;
             return 1;
         }
-        if(strcmp(added_variables[i],new_string) == 0) {
+        if (strcmp(added_variables[i], new_string) == 0) {
             return 0;
         }
     }
     return 0;
+}
+
+char *mips_treg_generator() {
+    // Maximum of 3 characters, since we have 32 registers at our disposal
+    char *str = malloc(3 * sizeof(char));
+    snprintf(str, sizeof(str), "t%d", ntreg++);
+    latest_treg = str;
+    // Append register to svars
+    return str;
 }

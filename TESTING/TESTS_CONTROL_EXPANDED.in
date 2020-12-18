@@ -9,15 +9,15 @@ TEST 6:
 int a = 2;
 int third() {
     int d = 3;
-    return a + b + c + d;
+    return a + e + c + d;
 }
 int main() {
     int first() {
-        int b = 1;
+        int e = 1;
 
         int second() {
             int c = 2;
-            third();
+            return third();
         }
         return second();
     }

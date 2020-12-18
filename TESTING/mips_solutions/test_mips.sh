@@ -7,6 +7,7 @@ readonly MYCC=$PROJECT/mycc
 readonly FILE=$PROJECT/TESTING/mips_solutions/tmp_tac
 readonly OUTPUT=$PROJECT/TESTING/mips_solutions/solutions.out
 readonly RESULT=$PROJECT/RESULT.s
+readonly SOLPATH=$PROJECT/TESTING/mips_solutions/solutions.in
 
 rm $OUTPUT
 a=1
@@ -28,3 +29,14 @@ b=$((b+2))
 fi
 done < $TESTSFILE
 rm $FILE
+
+printf "\n### END OF OUTPUT ###\n\n*** DIFFERENCES ***\n\n"
+
+diff $OUTPUT $SOLPATH
+
+if [ $? = 0 ]
+    then 
+    printf "All tests passed successfully!!!\n\n"
+    else
+    printf "\nSome or all tests Failed ;(\n\n"
+fi

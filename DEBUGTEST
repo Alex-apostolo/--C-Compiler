@@ -1,17 +1,10 @@
 int a = 2;
-int third() {
-    int d = 3;
-    return a + b + c + d;
-}
 int main() {
-    int first() {
-        int b = 1;
-
-        int second() {
-            int c = 2;
-            third();
-        }
-        return second();
-    }
-    return first();
+    int x = 125;
+    int y = 35;
+   int func() {
+       return 5 + 5;
+   } 
+   func();
+   return x + y;
 }

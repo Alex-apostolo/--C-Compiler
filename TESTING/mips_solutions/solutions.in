@@ -71,9 +71,9 @@ main:
 	li $t2,32
 	add $t3,$t1,$t2
 	sw $t3,x
-	lw $t0, x
-	move $a0, $t0
-	li $v0, 17
+	lw $t0,x
+	move $a0,$t0
+	li $v0,17
 	syscall
 
 $$$ TEST 6, LINE 11: $$$
@@ -93,7 +93,7 @@ third:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,3
 	sw $t0,d
@@ -104,8 +104,9 @@ third:
 	add $t5,$t3,$t4
 	lw $t6,d
 	add $t7,$t5,$t6
-	move $v0,$t7
-	jr $ra
+	move $a0,$t7
+	li $v0,17
+	syscall
 
 main:
 
@@ -125,7 +126,7 @@ first:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,1
 	sw $t0,b
@@ -142,16 +143,15 @@ first:
 	jal second
 
 
-	# Restore t registers
-	lw $t0, 0($fp)
-	lw $t1, 4($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	 # Jump instruction
-	move $v0,$t1
-	jr $ra
+	move $a0,$t1
+	li $v0,17
+	syscall
 
 second:
 	# Push $ra and old $fp
@@ -159,7 +159,7 @@ second:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,2
 	sw $t0,c
@@ -205,7 +205,7 @@ first:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,1
 	sw $t0,b
@@ -222,16 +222,15 @@ first:
 	jal second
 
 
-	# Restore t registers
-	lw $t0, 0($fp)
-	lw $t1, 4($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	 # Jump instruction
-	move $v0,$t1
-	jr $ra
+	move $a0,$t1
+	li $v0,17
+	syscall
 
 third:
 	# Push $ra and old $fp
@@ -239,7 +238,7 @@ third:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,3
 	sw $t0,d
@@ -251,16 +250,15 @@ third:
 	lw $t6,d
 	add $t7,$t5,$t6
 
-	# Restore t registers
-	lw $t0, 0($fp)
-	lw $t1, 4($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	 # Jump instruction
-	move $v0,$t7
-	jr $ra
+	move $a0,$t7
+	li $v0,17
+	syscall
 
 second:
 	# Push $ra and old $fp
@@ -268,7 +266,7 @@ second:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	li $t0,2
 	sw $t0,c
@@ -310,21 +308,20 @@ func:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
 
-	# Restore t registers
-	lw $t0, 0($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
 	 # Jump instruction
-	move $v0,$t2
-	jr $ra
+	move $a0,$t2
+	li $v0,17
+	syscall
 
 $$$ TEST 9, LINE 17: $$$
 
@@ -351,21 +348,20 @@ sum:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
 
-	# Restore t registers
-	lw $t0, 0($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
 	 # Jump instruction
-	move $v0,$t2
-	jr $ra
+	move $a0,$t2
+	li $v0,17
+	syscall
 
 func:
 	# Push $ra and old $fp
@@ -373,21 +369,20 @@ func:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
 
-	# Restore t registers
-	lw $t0, 0($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
 	 # Jump instruction
-	move $v0,$t2
-	jr $ra
+	move $a0,$t2
+	li $v0,17
+	syscall
 
 $$$ TEST 10, LINE 19: $$$
 
@@ -414,21 +409,20 @@ sum:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	lw $t0,a
 	lw $t1,b
 	add $t2,$t0,$t1
 
-	# Restore t registers
-	lw $t0, 0($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
 	 # Jump instruction
-	move $v0,$t2
-	jr $ra
+	move $a0,$t2
+	li $v0,17
+	syscall
 
 func:
 	# Push $ra and old $fp
@@ -436,18 +430,17 @@ func:
 	sw $ra, 0($sp)
 	sw $fp, 4($sp)
 	# New frame pointer
-	add $fp, $sp, 8
+	add $fp, $sp, -8
 
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
 
-	# Restore t registers
-	lw $t0, 0($fp)
 	# Restore $ra
-	lw $ra, -8($fp)
-	# Restore $fp
-	lw $fp, -4($fp)
+	lw $ra, -4($fp)
+	# Restore t registers
+	lw $t0, 4($fp)
 	 # Jump instruction
-	move $v0,$t2
-	jr $ra
+	move $a0,$t2
+	li $v0,17
+	syscall

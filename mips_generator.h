@@ -13,6 +13,7 @@ typedef struct ar {
     VAR *tregs;
     int tregs_size;
     char *ra;
+    int stack_size;
 }AR;
 
 #endif
