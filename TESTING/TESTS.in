@@ -8,13 +8,13 @@ int main() { int x = 53; return x+1;}
 %%
 int main() { int x = 1; x = x + 32; return x;}
 %%
-int a = 2; int third() { int d = 3; return a + b + c + d; } int main() { int first() { int b = 1; int second() { int c = 2; third(); } return second(); } return first(); } 
+int a = 2; int third() { int d = 3; return a + e + c + d; } int main() { int first() { int e = 1; int second() { int c = 2; return third(); } return second(); } return first(); }
 %%
-int a = 2; int main() { int first() { int b = 1; int second() { int c = 2; third(); } return second(); } int third() { int d = 3; return a + b + c + d; } return first(); } 
+int a = 2; int main() { int first() { int e = 1; int second() { int c = 2; return third(); } return second(); } int third() { return a + e + c; } return first(); }
 %%
-int main() { int func(int a, int b) { return a + b; } return func(a = 5 + 9,b = 8 - 4); } 
+int main() { int func(int a, int e) { return a + e; } return func(a = 5 + 9,e = 8 - 4); }
 %%
-int main() { int sum(int a, int b){ return a + b; } int func(int c, int d) { return c + d; } return func(c = sum(a = 5, b = 90), d = 35); } 
+int main() { int sum(int a, int e){ return a + e; } int func(int c, int d) { return c + d; } return func(c = sum(a = 5, e = 90), d = 35); }
 %%
 int main() { int x = 69; if(x > 100) { x = 0; x = x + 5; print("hello"); }else if((x * 2) < 100){ x = 135; }else if(x >= 69){ x = 123; }else { x = 456; } return x; } 
 %%

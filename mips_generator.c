@@ -114,14 +114,17 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
         case RET_OP:
             // If its a function then jump before returning
             // Restore everything from AR
-            if (!is_main && *ar != 0)
+            if (!is_main && *ar != 0 && temp->args.ret->type != TREG)
                 callee_print_restore_ar(file, *ar);
 
             switch (temp->args.ret->type) {
             // Select appropriate return type
             case IDENTIFIER: {
-                is_main ? fprintf(file, "\tlw $a0, %s\n\tli $v0, 17\n\tsyscall\n", temp->args.ret->val.identifier)
-                        : fprintf(file, "\tlw $v0, %s\n\tjr $ra\n", temp->args.ret->val.identifier);
+                is_main
+                    ? fprintf(file, "\tlw $a0, %s\n\tli $v0, 17\n\tsyscall\n",
+                              temp->args.ret->val.identifier)
+                    : fprintf(file, "\tlw $v0, %s\n\tjr $ra\n",
+                              temp->args.ret->val.identifier);
                 break;
             }
             case CONSTANT:
@@ -138,12 +141,15 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                                   "\tmove $a0, $v0\n\tli $v0,17\n\tsyscall\n")
                         : fprintf(file, "\tjr $ra\n");
                 } else {
-                    is_main
-                        ? fprintf(file,
-                                  "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                                  temp->args.ret->val.treg)
-                        : fprintf(file, "\tmove $v0,$%s\n\tjr $ra\n",
-                                  temp->args.ret->val.treg);
+
+                    if(is_main) {
+                        fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n", temp->args.ret->val.treg);
+                    } else {
+                        fprintf(file, "\tmove $v0,$%s\n",
+                                temp->args.ret->val.treg);
+                        callee_print_restore_ar(file, *ar);
+                        fprintf(file, "\tjr $ra\n");
+                    }
                 }
                 break;
             }

@@ -112,6 +112,8 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         return term;
         break;
     case APPLY: {
+        if(term->right != NULL)
+            __tac_generator(term->right, seq, env);
         // Creates a call TAC for the function: this will be a ja in MIPS
         env->latest_treg = "v0";
         CALL *new_call = call_create(((TOKEN *)term->left->left)->lexeme, 0, env->latest_treg, env->nvars, env->svars);
@@ -166,6 +168,10 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         __tac_generator(term->left, seq, env);
         // Right child is the last item and also the return value
         return __tac_generator(term->right, seq, env);
+        break;
+    case ',':
+        __tac_generator(term->left, seq, env);
+        __tac_generator(term->right, seq, env);
         break;
     case '=': {
         // Creates TAC for rhs of expression
