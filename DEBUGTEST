@@ -1,11 +1,6 @@
 int main() {
-    int func() {
-        int func2(){
-            int x = 5;
-            return x;
-        }
-        return func2();
+    int func(int a, int b) {
+        return a + b;
     }
-    y = func();
-    return y;
+    return func(a = 5 + 9,b = 8 - 4);
 }

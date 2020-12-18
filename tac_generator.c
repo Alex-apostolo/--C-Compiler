@@ -113,7 +113,8 @@ void *__tac_generator(NODE *term, TAC **seq, ENV_TAC *env) {
         break;
     case APPLY: {
         // Creates a call TAC for the function: this will be a ja in MIPS
-        CALL *new_call = call_create(((TOKEN *)term->left->left)->lexeme, 0, treg_generator(env), env->nvars, env->svars);
+        env->latest_treg = "v0";
+        CALL *new_call = call_create(((TOKEN *)term->left->left)->lexeme, 0, env->latest_treg, env->nvars, env->svars);
         append(seq, tac_create(CALL_OP, new_call, NULL));
         return env->latest_treg;
         break;

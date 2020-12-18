@@ -5,7 +5,9 @@
 #######
 TEST 6:
 
-## THIS TEST INDICATES THE INTERPRETER HAS LEXICAL SCOPE ##
+## THIS TEST INDICATES LEXICAL SCOPE WHEN RESULT IS WRONG##
+## MIPS HAS LEXICAL SCOPE BUT GIVES CORRECT RESULT, THIS IS ##
+## BECAUSE THE VARIABLES ARE NOT GARBAGE COLLECTED ##
 int a = 2;
 int third() {
     int d = 3;
@@ -31,17 +33,15 @@ TEST 7:
 int a = 2;
 int main() {
     int first() {
-        int b = 1;
-
+        int e = 1;
         int second() {
             int c = 2;
-            third();
+            return third();
         }
         return second();
     }
     int third() {
-        int d = 3;
-        return a + b + c + d;
+        return a + e + c;
     }
     return first();
 }

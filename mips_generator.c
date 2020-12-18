@@ -61,7 +61,7 @@ void mips_generator(TAC *seq) {
             // If it doesnt exist already add it
             if (add_variable(added_variables, temp->args.store->value,
                              length)) {
-                fprintf(file, "%s:\n", temp->args.store->value);
+                fprintf(file, "%s: .word 0\n", temp->args.store->value);
             }
         }
         temp = temp->next;
@@ -94,7 +94,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             *ar = activation_record_create(*(temp->args.call->svars));
             // Push temp, args and locals to the stack
             caller_print_ar(file, *ar);
-            // Call function    
+            // Call function
             fprintf(file, "\tjal %s\n\n", temp->args.call->name);
             break;
 
@@ -112,6 +112,7 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                     temp->args.store->value);
             break;
         case RET_OP:
+            // If its a function then jump before returning
             // Restore everything from AR
             if (!is_main && *ar != 0)
                 callee_print_restore_ar(file, *ar);
@@ -119,15 +120,8 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             switch (temp->args.ret->type) {
             // Select appropriate return type
             case IDENTIFIER: {
-                // Since we have already saved the registers i can use the first
-                // one
-                char *treg = "t0";
-                fprintf(file, "\tlw $%s, %s\n", treg,
-                        temp->args.ret->val.identifier);
-                is_main ? fprintf(file,
-                                  "\tmove $a0, $%s\n\tli $v0, 17\n\tsyscall\n",
-                                  treg)
-                        : fprintf(file, "\tmove $v0, $%s\n\tjr $ra\n", treg);
+                is_main ? fprintf(file, "\tlw $a0, %s\n\tli $v0, 17\n\tsyscall\n", temp->args.ret->val.identifier)
+                        : fprintf(file, "\tlw $v0, %s\n\tjr $ra\n", temp->args.ret->val.identifier);
                 break;
             }
             case CONSTANT:
@@ -137,13 +131,23 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
                                   temp->args.ret->val.constant);
                 break;
             case TREG:
-                is_main
-                    ? fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
-                              temp->args.ret->val.treg)
-                    : fprintf(file, "\tmove $v0,$%s\n\tjr $ra\n",
-                              temp->args.ret->val.treg);
+                // If its returned from a function then ignore move
+                if (strcmp(temp->args.ret->val.treg, "v0") == 0) {
+                    is_main
+                        ? fprintf(file,
+                                  "\tmove $a0, $v0\n\tli $v0,17\n\tsyscall\n")
+                        : fprintf(file, "\tjr $ra\n");
+                } else {
+                    is_main
+                        ? fprintf(file,
+                                  "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                                  temp->args.ret->val.treg)
+                        : fprintf(file, "\tmove $v0,$%s\n\tjr $ra\n",
+                                  temp->args.ret->val.treg);
+                }
                 break;
             }
+
             break;
         case '+':
         case '-':
