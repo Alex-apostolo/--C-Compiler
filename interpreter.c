@@ -1,7 +1,10 @@
 #include "interpreter_constructors.c"
+#include "interpreter_helper.c"
 
-/*FUNCTION DEFINITIONS: these functions are declared locally and not in the .h
- * file because we want to hide them from the outside scope*/
+/* FUNCTION DEFINITIONS: 
+ * these functions are declared locally and not in the .h
+ * file because we want to hide them from the outside scope
+ */
 VALUE *_interpreter(NODE *, ENV *);
 VALUE *execute(char *, ENV *, int, NODE *);
 
@@ -27,18 +30,21 @@ VALUE *interpret(NODE *term, ENV *env) {
 }
 
 // Called after the initialization of the interpreter is completed
+// Function does a tree walk of the AST
 VALUE *_interpreter(NODE *term, ENV *env) {
+    // Switch on term type
     switch (term->type) {
     case LEAF:
         // Left child has value: STRING_LITERAL, IDENTIFIER, CONSTANT
         return _interpreter(term->left, env);
         break;
     case IDENTIFIER:
+        // TODO: Refactor, create a symbol in the 
+        // symbol table for booleans instead of this approach
         if (strcmp(((TOKEN *)term)->lexeme, "true") == 0)
             return value_create(BOOL_OP, (void *)1);
         if (strcmp(((TOKEN *)term)->lexeme, "false") == 0)
             return value_create(BOOL_OP, (void *)0);
-
         return (VALUE *)term;
         break;
     case CONSTANT: {
@@ -53,20 +59,24 @@ VALUE *_interpreter(NODE *term, ENV *env) {
     case APPLY: {
         // Call function
         char *name = ((TOKEN *)_interpreter(term->left, env))->lexeme;
+        // TODO: Refactor, create a symbol in the symbol table for the
+        // print function instead of this approach
         if (strcmp(name, "print") == 0) {
             VALUE *res = _interpreter(term->right, env);
             printf("%s", res->v.string);
             return res;
         }
+        // Execute function, the value 1 indicates that its a local function
         VALUE *result = execute(name, env, 1, term->right);
         if (result->v.integer == -2) {
+            // Execute funciton as a global one
             result = execute(name, env, 0, term->right);
             if (result->v.integer == -2) {
                 printf("Error could not find function\n\n");
                 return NULL;
             }
         }
-        // Pop from frame from stack
+        // Once done with execution we can pop frame from stack
         pop(env->stack);
         // Return result
         return result;
@@ -83,7 +93,6 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         return _interpreter(term->right, env);
         break;
     case 'D': {
-        // TODO: refactor term->left->right->right
         // Creates new closure
         CLOSURE *new_closure = closure_create(term->left->right->right,
                                               term->right, peek(env->stack));
@@ -92,21 +101,19 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         // Name of Function
         TOKEN *name = (TOKEN *)_interpreter(term->left, env);
         // Assings closure to the bindings of the environment
-        assing_value(name, peek(env->stack), new_value, env);
+        // the peek() function gives us the top element of the stack
+        assing_value(name, new_value, peek(env->stack), env);
         break;
     }
     case 'F': {
-        // Right child are the Arguments of function
-        // if (term->right != NULL) {
-        //     _interpreter(term->right, env);
-        // }
-        // Left child is the Name of function
-        TOKEN *t = (TOKEN *)_interpreter(term->left, env);
-        declare(t, peek(env->stack));
-        return (VALUE *)t;
+        // Function definition, declare it in environment
+        TOKEN *identifier = (TOKEN *)_interpreter(term->left, env);
+        declare(identifier, peek(env->stack));
+        return (VALUE *)identifier;
         break;
     }
     case ',':
+        // Arguments sequence
         _interpreter(term->right, env);
         _interpreter(term->left, env);
     case CONTINUE:
@@ -114,8 +121,8 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         break;
     case RETURN:
         // Left child is an AST of the expression whose value is to be returned
-        // TODO: handle the case where left child is identifier and the case for
-        // everything else
+        // To understand better the conditional statements use the -f flag and
+        // look into the return term
         if (term->left != NULL) {
             if (term->left->type == LEAF &&
                 term->left->left->type == IDENTIFIER) {
@@ -124,7 +131,6 @@ VALUE *_interpreter(NODE *term, ENV *env) {
             } else
                 return _interpreter(term->left, env);
         } else {
-            // TODO: throw an error
             printf("Error no return type\n");
         }
         break;
@@ -154,8 +160,9 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         return _interpreter(term->right, env);
         break;
     case '=':
-        assing_value((TOKEN *)_interpreter(term->left, env), peek(env->stack),
-                     _interpreter(term->right, env), env);
+        // Assingment
+        assing_value((TOKEN *)_interpreter(term->left, env),
+                     _interpreter(term->right, env), peek(env->stack), env);
         break;
     case '+':
     case '-':
@@ -170,6 +177,7 @@ VALUE *_interpreter(NODE *term, ENV *env) {
     case GE_OP: {
         int lval;
         int rval;
+        // Calculate left value
         if (term->left->left->type == IDENTIFIER)
             lval = find_ident_value((TOKEN *)_interpreter(term->left, env),
                                     peek(env->stack), env)
@@ -177,6 +185,7 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         else
             lval = _interpreter(term->left, env)->v.integer;
 
+        // Calculate right value
         if (term->right->left->type == IDENTIFIER)
             rval = find_ident_value((TOKEN *)_interpreter(term->right, env),
                                     peek(env->stack), env)
@@ -185,7 +194,8 @@ VALUE *_interpreter(NODE *term, ENV *env) {
             rval = _interpreter(term->right, env)->v.integer;
 
         VALUE *exit_term = value_create(CONSTANT, NULL);
-
+        // Switch inside switch, used for shortening the source code
+        // Build in mathematical functions
         switch (term->type) {
         case '+':
             exit_term->v.integer = lval + rval;
@@ -225,7 +235,6 @@ VALUE *_interpreter(NODE *term, ENV *env) {
         break;
     }
     case IF: {
-        // Making symbols for true and else didn't work
         NODE *antecedent = term->left;
         NODE *consequent =
             term->right->type == ELSE ? term->right->left : term->right;
@@ -241,7 +250,6 @@ VALUE *_interpreter(NODE *term, ENV *env) {
             // execute consequent
             _interpreter(consequent, env);
         }
-
         break;
     }
     case WHILE:
@@ -252,17 +260,15 @@ VALUE *_interpreter(NODE *term, ENV *env) {
     return NULL;
 }
 
-// Function responsible for finding or declaring a frame in an environment and
-// extending its environment
-
-// First argument is the frame we are searching or declaring
-
-// Second argument is the environment we want to extend
-
-// Third argument is a boolean(declared as integer for portability) indicating
-// whether we called the function from a local or global state
-
-// Fourth argument are the arguments of the frame provided
+/* 
+* Function responsible for finding or declaring a frame in an environment and
+* extending its environment
+* First argument is the frame we are searching or declaring
+* Second argument is the environment we want to extend
+* Third argument is a boolean(declared as integer for portability) indicating
+* whether we called the function from a local or global state
+* Fourth argument are the arguments of the frame provided
+*/
 VALUE *execute(char *frame, ENV *env, int local, NODE *args) {
     // Search for frame and execute it
     int func_exists = 0;

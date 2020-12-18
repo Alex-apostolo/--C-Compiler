@@ -1,10 +1,11 @@
-int a = 2;
 int main() {
-    int x = 125;
-    int y = 35;
-   int func() {
-       return 5 + 5;
-   } 
-   func();
-   return x + y;
+    int func() {
+        int func2(){
+            int x = 5;
+            return x;
+        }
+        return func2();
+    }
+    y = func();
+    return y;
 }
