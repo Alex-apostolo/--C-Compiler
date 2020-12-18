@@ -111,50 +111,54 @@ void _mips_generator(TAC *seq, FILE *file, AR **ar) {
             fprintf(file, "\tsw $%s,%s\n", temp->args.store->treg,
                     temp->args.store->value);
             break;
-        case RET_OP:
-            // If its a function then jump before returning
-            // Restore everything from AR
-            if (!is_main && *ar != 0 && temp->args.ret->type != TREG)
-                callee_print_restore_ar(file, *ar);
-
-            switch (temp->args.ret->type) {
-            // Select appropriate return type
-            case IDENTIFIER: {
-                is_main
-                    ? fprintf(file, "\tlw $a0, %s\n\tli $v0, 17\n\tsyscall\n",
-                              temp->args.ret->val.identifier)
-                    : fprintf(file, "\tlw $v0, %s\n\tjr $ra\n",
-                              temp->args.ret->val.identifier);
-                break;
-            }
-            case CONSTANT:
-                is_main ? fprintf(file, "\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",
-                                  temp->args.ret->val.constant)
-                        : fprintf(file, "\tli $v0,%d\n\tjr $ra\n",
-                                  temp->args.ret->val.constant);
-                break;
-            case TREG:
-                // If its returned from a function then ignore move
-                if (strcmp(temp->args.ret->val.treg, "v0") == 0) {
-                    is_main
-                        ? fprintf(file,
-                                  "\tmove $a0, $v0\n\tli $v0,17\n\tsyscall\n")
-                        : fprintf(file, "\tjr $ra\n");
-                } else {
-
-                    if(is_main) {
-                        fprintf(file, "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n", temp->args.ret->val.treg);
-                    } else {
-                        fprintf(file, "\tmove $v0,$%s\n",
+        case RET_OP: {
+            if (!is_main && *ar != 0) {
+                // It is not main
+                switch (temp->args.ret->type) {
+                case IDENTIFIER:
+                    fprintf(file, "\tlw $v0, %s\n",
+                            temp->args.ret->val.identifier);
+                    break;
+                case CONSTANT:
+                    fprintf(file, "\tli $v0,%d\n",
+                            temp->args.ret->val.constant);
+                    break;
+                case TREG:
+                    if (strcmp(temp->args.ret->val.treg, "v0") != 0)
+                        fprintf(file, "\tmove $v0, $%s\n",
                                 temp->args.ret->val.treg);
-                        callee_print_restore_ar(file, *ar);
-                        fprintf(file, "\tjr $ra\n");
-                    }
+                    break;
                 }
-                break;
+                // Restore
+                callee_print_restore_ar(file, *ar);
+                // Print return
+                fprintf(file, "\tjr $ra\n");
+            } else {
+                // It is main
+                // Select appropriate return type
+                switch (temp->args.ret->type) {
+                case IDENTIFIER:
+                    fprintf(file, "\tlw $a0, %s\n\tli $v0, 17\n\tsyscall\n",
+                            temp->args.ret->val.identifier);
+                    break;
+                case CONSTANT:
+                    fprintf(file, "\tli $a0,%d\n\tli $v0,17\n\tsyscall\n",
+                            temp->args.ret->val.constant);
+                    break;
+                case TREG:
+                    // If its returned from a function then ignore move
+                    if (strcmp(temp->args.ret->val.treg, "v0") == 0) {
+                        fprintf(file,
+                                "\tmove $a0, $v0\n\tli $v0,17\n\tsyscall\n");
+                    } else {
+                        fprintf(file,
+                                "\tmove $a0,$%s\n\tli $v0,17\n\tsyscall\n",
+                                temp->args.ret->val.treg);
+                    }
+                    break;
+                }
             }
-
-            break;
+        } break;
         case '+':
         case '-':
         case '*':

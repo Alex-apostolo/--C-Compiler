@@ -48,7 +48,7 @@ sum:
 	lw $t0,a
 	lw $t1,e
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)
@@ -74,7 +74,7 @@ func:
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)

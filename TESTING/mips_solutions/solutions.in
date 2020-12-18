@@ -77,6 +77,116 @@ main:
 
 $$$ TEST 6, LINE 11: $$$
 
+	.data
+a: .word 2
+d: .word 0
+e: .word 0
+c: .word 0
+
+	.text
+	.globl main
+
+third:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, 8
+
+	li $t0,3
+	sw $t0,d
+	lw $t1,a
+	lw $t2,e
+	add $t3,$t1,$t2
+	lw $t4,c
+	add $t5,$t3,$t4
+	lw $t6,d
+	add $t7,$t5,$t6
+	move $a0,$t7
+	li $v0,17
+	syscall
+
+main:
+
+	 # Jump instruction
+	jal first
+
+	move $a0, $v0
+	li $v0,17
+	syscall
+
+first:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, 8
+
+	li $t0,1
+	sw $t0,e
+
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	# Push locals
+	add $sp, $sp, -4
+	lw $t0, e
+	sw $t0, 0($sp)
+	 # Jump instruction
+	jal second
+
+
+	# Restore locals
+	lw $t0, 0($fp)
+	sw $t0, e
+	# Restore t registers
+	lw $t0, 4($fp)
+	# Restore $ra
+	lw $ra, -8($fp)
+	# Restore $fp
+	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 16
+	 # Jump instruction
+	jr $ra
+
+second:
+	# Push $ra and old $fp
+	add $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $fp, 4($sp)
+	# New frame pointer
+	add $fp, $sp, 8
+
+	li $t0,2
+	sw $t0,c
+
+	# Push t registers
+	add $sp, $sp, -4
+	sw $t0, 0($sp)
+	# Push locals
+	add $sp, $sp, -4
+	lw $t1, c
+	sw $t1, 0($sp)
+	 # Jump instruction
+	jal third
+
+
+	# Restore locals
+	lw $t0, 0($fp)
+	sw $t0, c
+	# Restore t registers
+	lw $t0, 4($fp)
+	# Restore $ra
+	lw $ra, -8($fp)
+	# Restore $fp
+	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 16
+	 # Jump instruction
+	jr $ra
 
 $$$ TEST 7, LINE 13: $$$
 
@@ -118,6 +228,19 @@ first:
 	 # Jump instruction
 	jal second
 
+
+	# Restore locals
+	lw $t0, 0($fp)
+	sw $t0, e
+	# Restore t registers
+	lw $t0, 4($fp)
+	# Restore $ra
+	lw $ra, -8($fp)
+	# Restore $fp
+	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 16
+	 # Jump instruction
 	jr $ra
 
 third:
@@ -133,11 +256,11 @@ third:
 	add $t2,$t0,$t1
 	lw $t3,c
 	add $t4,$t2,$t3
-	move $v0,$t4
+	move $v0, $t4
 
 	# Restore locals
-	lw $t0, 0($fp)
-	sw $t0, e
+	lw $t1, 0($fp)
+	sw $t1, e
 	# Restore t registers
 	lw $t0, 4($fp)
 	# Restore $ra
@@ -165,11 +288,24 @@ second:
 	sw $t0, 0($sp)
 	# Push locals
 	add $sp, $sp, -4
-	lw $t1, c
-	sw $t1, 0($sp)
+	lw $t2, c
+	sw $t2, 0($sp)
 	 # Jump instruction
 	jal third
 
+
+	# Restore locals
+	lw $t0, 0($fp)
+	sw $t0, c
+	# Restore t registers
+	lw $t0, 4($fp)
+	# Restore $ra
+	lw $ra, -8($fp)
+	# Restore $fp
+	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 16
+	 # Jump instruction
 	jr $ra
 
 $$$ TEST 8, LINE 15: $$$
@@ -217,7 +353,7 @@ func:
 	lw $t0,a
 	lw $t1,e
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)
@@ -287,7 +423,7 @@ sum:
 	lw $t0,a
 	lw $t1,e
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)
@@ -313,7 +449,7 @@ func:
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)
@@ -380,7 +516,7 @@ sum:
 	lw $t0,a
 	lw $t1,e
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)
@@ -406,7 +542,7 @@ func:
 	lw $t0,c
 	lw $t1,d
 	add $t2,$t0,$t1
-	move $v0,$t2
+	move $v0, $t2
 
 	# Restore t registers
 	lw $t0, 0($fp)

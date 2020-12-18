@@ -1,9 +1,15 @@
+int a = 2;
 int main() {
-    int sum(int a, int e){
-        return a + e;
+    int first() {
+        int e = 1;
+        int second() {
+            int c = 2;
+            return third();
+        }
+        return second();
     }
-    int func(int c, int d) {
-        return c + d;
+    int third() {
+        return a + e + c;
     }
-    return func(c = sum(a = 5, e = 90), d = 35);
+    return first();
 }
