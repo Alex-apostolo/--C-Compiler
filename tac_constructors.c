@@ -1,5 +1,26 @@
 #include "tac_generator.h"
 
+/*
+ * Constructors for 
+ * EXPR, 
+ * PROC, 
+ * CALL, 
+ * VAR, 
+ * LOAD,
+ * STORE,
+ * RET,
+ * IF_,
+ * GOTO,
+ * LABEL,
+ * VAL,
+ * GLOBAL,
+ * CLOS,
+ * TAC,
+ * BB,
+ * ENV_TAC
+ * 
+*/ 
+
 EXPR *expr_create(char *src1, char *src2, char *dst) {
     EXPR *new_expr = calloc(1, sizeof(EXPR));
     new_expr->src1 = src1;

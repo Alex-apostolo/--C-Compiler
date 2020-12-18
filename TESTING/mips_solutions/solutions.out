@@ -142,13 +142,18 @@ first:
 	jal second
 
 
-	# Restore t registers
+	# Restore locals
 	lw $t0, 0($fp)
-	lw $t1, 4($fp)
+	sw $t0, b
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	# Restore $ra
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 20
 	 # Jump instruction
 	move $v0,$t1
 	jr $ra
@@ -170,8 +175,8 @@ second:
 	sw $t1, 4($sp)
 	# Push locals
 	add $sp, $sp, -4
-	lw $t0, c
-	sw $t0, 0($sp)
+	lw $t1, c
+	sw $t1, 0($sp)
 	 # Jump instruction
 	jal third
 
@@ -222,13 +227,18 @@ first:
 	jal second
 
 
-	# Restore t registers
+	# Restore locals
 	lw $t0, 0($fp)
-	lw $t1, 4($fp)
+	sw $t0, b
+	# Restore t registers
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	# Restore $ra
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 20
 	 # Jump instruction
 	move $v0,$t1
 	jr $ra
@@ -251,13 +261,18 @@ third:
 	lw $t6,d
 	add $t7,$t5,$t6
 
+	# Restore locals
+	lw $t1, 0($fp)
+	sw $t1, b
 	# Restore t registers
-	lw $t0, 0($fp)
-	lw $t1, 4($fp)
+	lw $t0, 4($fp)
+	lw $t1, 8($fp)
 	# Restore $ra
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 20
 	 # Jump instruction
 	move $v0,$t7
 	jr $ra
@@ -279,8 +294,8 @@ second:
 	sw $t1, 4($sp)
 	# Push locals
 	add $sp, $sp, -4
-	lw $t0, c
-	sw $t0, 0($sp)
+	lw $t2, c
+	sw $t2, 0($sp)
 	 # Jump instruction
 	jal third
 
@@ -322,6 +337,8 @@ func:
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 12
 	 # Jump instruction
 	move $v0,$t2
 	jr $ra
@@ -363,6 +380,8 @@ sum:
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 12
 	 # Jump instruction
 	move $v0,$t2
 	jr $ra
@@ -385,6 +404,8 @@ func:
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 12
 	 # Jump instruction
 	move $v0,$t2
 	jr $ra
@@ -426,6 +447,8 @@ sum:
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 12
 	 # Jump instruction
 	move $v0,$t2
 	jr $ra
@@ -448,6 +471,8 @@ func:
 	lw $ra, -8($fp)
 	# Restore $fp
 	lw $fp, -4($fp)
+	# Restore $sp
+	add $sp, $sp, 12
 	 # Jump instruction
 	move $v0,$t2
 	jr $ra

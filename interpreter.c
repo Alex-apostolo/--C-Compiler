@@ -1,5 +1,6 @@
 #include "interpreter_constructors.c"
 #include "interpreter_helper.c"
+#include "stack.h"
 
 /* FUNCTION DEFINITIONS: 
  * these functions are declared locally and not in the .h
@@ -15,7 +16,8 @@ VALUE *interpret(NODE *term, ENV *env) {
     if (env->global == NULL)
         env->global = frame_create(NULL);
     // Create a new Stack which will be used for storing frames
-    env->stack = createStack(1024 * 1024);
+    // Size of the stack is 1MB
+    env->stack = create_stack(1024 * 1024);
     // Push global frame to stack
     push(env->stack, env->global);
 

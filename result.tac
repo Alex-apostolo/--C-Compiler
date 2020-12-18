@@ -1,16 +1,18 @@
 
 proc main 0
+closure sum
 closure func
 t0 = call func
-store t0 y
-return y
-
-proc func 0
-closure func2
-t0 = call func2
 return t0
 
-proc func2 0
-load t0 5
-store t0 x
-return x
+proc sum 2
+load t0 a
+load t1 b
+add t0 t1 t2
+return t2
+
+proc func 2
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2
