@@ -8,9 +8,8 @@ typedef struct stack {
 	FRAME **list;
 }STACK;
 
-STACK *createStack(unsigned capacity);
-int isFull(STACK* stack);
-int isEmpty(STACK* stack);
+STACK *create_stack(unsigned capacity);
+int is_empty(STACK* stack);
 void push(STACK* stack, FRAME* item);
 FRAME *pop(STACK* stack);
 FRAME *peek(STACK* stack);

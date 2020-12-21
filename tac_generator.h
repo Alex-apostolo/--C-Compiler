@@ -1,47 +1,56 @@
 #ifndef __TAC_G
 #define __TAC_G
-#include "token.h"
+#include "C.tab.h"
 #include "nodes.h"
+#include "token.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-#define BLOCK_OP 278
 #define LOAD_OP 279
 #define STORE_OP 280
 #define CALL_OP 281
-#define TREG 282
-
-/*Global Variables*/
-extern int ntreg;
-extern char *latest_treg;
-extern int nvars;
-extern char *svars[];
+#define PROC_OP 282
+#define GLOBAL_OP 283
+#define CLOS_OP 284
+#define LABEL_OP 285
+#define RET_OP 286
+#define IF_OP 287
+#define GOTO_OP 288
+#define TREG 289
+#define AREG 290
 
 typedef struct expr {
-    char* src1;
-    char* src2;
-    char* dst;
+    char *src1;
+    char *src2;
+    char *dst;
 } EXPR;
 
 typedef struct proc {
-    TOKEN *name;
+    char *name;
     int arity;
 } PROC;
 
-// INCLUDE 
-typedef struct call {
-    TOKEN * name ; 
-    int arity ;
-    char *store;
-} CALL ;
+typedef struct var {
+    char *name;
+    int type;
+    struct var *next;
+} VAR;
 
-typedef struct block {
-    int nvars ;
-} BLOCK ;
+typedef struct call {
+    char *name;
+    int arity;
+    char *store;
+    int *nvars;
+    VAR **svars;
+} CALL;
 
 typedef struct load {
-    char *treg ;
+    char *treg;
     int type;
-    union {char *identifier ; char *constant ;} val;
+    union {
+        char *identifier;
+        char *constant;
+    } val;
 } LOAD;
 
 typedef struct store {
@@ -51,7 +60,11 @@ typedef struct store {
 
 typedef struct ret {
     int type;
-    union {char *identifier ; int constant ; char *treg ;} val;
+    union {
+        char *identifier;
+        int constant;
+        char *treg;
+    } val;
 } RET;
 
 typedef struct if_ {
@@ -67,20 +80,62 @@ typedef struct label {
     char *name;
 } LABEL;
 
+typedef struct val {
+    int type;
+    union {
+        int integer;
+        int boolean;
+        char *string;
+    } v;
+} VAL;
+
+typedef struct global {
+    char *name;
+    int type;
+    VAL *val;
+} GLOBAL;
+
+typedef struct clos {
+    NODE *body;
+    char *name;
+} CLOS;
+
 typedef struct tac {
-    int op ;
-    union { BLOCK block ; CALL call ; LOAD load; PROC proc; STORE store; EXPR expr; RET ret; IF_ if_; GOTO goto_; LABEL label;} args ;
-    struct tac * next ;
-} TAC ;
+    int op;
+    union {
+        CALL *call;
+        LOAD *load;
+        PROC *proc;
+        CLOS *clos;
+        GLOBAL *glob;
+        STORE *store;
+        EXPR *expr;
+        RET *ret;
+        IF_ *if_;
+        GOTO *goto_;
+        LABEL *label;
+    } args;
+    struct tac *next;
+} TAC;
+
+typedef struct env_tac {
+    int ntreg;
+    char *latest_treg;
+    int nlabel;
+    char *latest_label;
+    int arguments;
+    int *nvars;
+    VAR **svars;
+} ENV_TAC;
 
 typedef struct bb {
     TAC **leader;
     struct bb *next;
 } BB;
 
-void printTAC(FILE *,BB *);
-void *tac_generator(NODE *,BB **);
+void printTAC(FILE *, BB *);
+void tac_generator(NODE *, TAC **);
 char *treg_generator();
-char* my_itoa(int);
+char *my_itoa(int);
 
 #endif

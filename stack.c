@@ -4,7 +4,7 @@
 #include "interpreter.h"
 #include "stack.h"
 
-STACK* createStack(unsigned capacity)
+STACK* create_stack(unsigned capacity)
 {
 	STACK* stack = calloc(1,sizeof(STACK));
 	stack->capacity = capacity;
@@ -13,36 +13,28 @@ STACK* createStack(unsigned capacity)
 	return stack;
 }
 
-int isEmpty(STACK* stack)
+int is_empty(STACK* stack)
 {
 	if(stack->top == -1) return 1;
 	else return 0;
 }
 
-int isFull(STACK* stack)
-{
-	if(stack->top == stack->capacity) return 1;
-	else return 0;
-}
-
 void push(STACK* stack, FRAME *item)
 {
-	if (isFull(stack))
-		return;
 	int index = ++stack->top;
 	stack->list[index] = item;
 }
 
 FRAME *pop(STACK* stack)
 {
-	if (isEmpty(stack))
+	if (is_empty(stack))
 		return NULL;
 	return stack->list[stack->top--];
 }
 
 FRAME *peek(STACK* stack)
 {
-	if (isEmpty(stack))
+	if (is_empty(stack))
 		return NULL;
 	return stack->list[stack->top];
 }

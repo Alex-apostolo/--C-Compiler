@@ -1,0 +1,179 @@
+
+$$$ TEST 1, LINE 1: $$$
+
+proc main 0
+return 53
+
+$$$ TEST 2, LINE 3: $$$
+
+proc main 0
+load t0 2
+load t1 3
+add t0 t1 t2
+return t2
+
+$$$ TEST 3, LINE 5: $$$
+
+proc main 0
+return 15
+
+$$$ TEST 4, LINE 7: $$$
+
+proc main 0
+load t0 53
+store t0 x
+load t1 x
+load t2 1
+add t1 t2 t3
+return t3
+
+$$$ TEST 5, LINE 9: $$$
+
+proc main 0
+load t0 1
+store t0 x
+load t1 x
+load t2 32
+add t1 t2 t3
+store t3 x
+return x
+
+$$$ TEST 6, LINE 11: $$$
+global a 2
+
+proc third 0
+load t0 3
+store t0 d
+load t1 a
+load t2 e
+add t1 t2 t3
+load t4 c
+add t3 t4 t5
+load t6 d
+add t5 t6 t7
+return t7
+
+proc main 0
+closure first
+v0 = call first
+return v0
+
+proc first 0
+load t0 1
+store t0 e
+closure second
+v0 = call second
+return v0
+
+proc second 0
+load t0 2
+store t0 c
+v0 = call third
+return v0
+
+$$$ TEST 7, LINE 13: $$$
+global a 2
+
+proc main 0
+closure first
+closure third
+v0 = call first
+return v0
+
+proc first 0
+load t0 1
+store t0 e
+closure second
+v0 = call second
+return v0
+
+proc third 0
+load t0 a
+load t1 e
+add t0 t1 t2
+load t3 c
+add t2 t3 t4
+return t4
+
+proc second 0
+load t0 2
+store t0 c
+v0 = call third
+return v0
+
+$$$ TEST 8, LINE 15: $$$
+
+proc main 0
+closure func
+load t0 5
+load t1 9
+add t0 t1 t2
+store t2 a
+load t3 8
+load t4 4
+sub t3 t4 t5
+store t5 e
+v0 = call func
+return v0
+
+proc func 2
+load t0 a
+load t1 e
+add t0 t1 t2
+return t2
+
+$$$ TEST 9, LINE 17: $$$
+
+proc main 0
+closure sum
+closure func
+load t0 5
+store t0 a
+load t1 90
+store t1 e
+v0 = call sum
+store v0 c
+load t2 35
+store t2 d
+v0 = call func
+return v0
+
+proc sum 2
+load t0 a
+load t1 e
+add t0 t1 t2
+return t2
+
+proc func 2
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2
+
+$$$ TEST 10, LINE 19: $$$
+
+proc main 0
+closure sum
+closure func
+load t0 5
+store t0 a
+load t1 90
+store t1 e
+v0 = call sum
+store v0 c
+load t2 35
+store t2 d
+v0 = call func
+return v0
+
+proc sum 2
+load t0 a
+load t1 e
+add t0 t1 t2
+return t2
+
+proc func 2
+load t0 c
+load t1 d
+add t0 t1 t2
+return t2

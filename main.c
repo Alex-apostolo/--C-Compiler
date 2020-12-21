@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
                 break;
                 case STRING_LITERAL:
                 printf("'%s'\n",exit_code->v.string);
-                return exit_code->v.string;
+                return -3;
                 break;
                 case FUNCTION:
                 printf("func\n");
@@ -235,8 +235,8 @@ int main(int argc, char **argv) {
         }
 
         if (tac == true) {
-            BB *bb = calloc(1,sizeof(BB));
-            tac_generator(tree, &bb);
+            TAC **seq = calloc(1,sizeof(TAC *));
+            tac_generator(tree, seq);
             printf("\n");
             remove("RESULT.tac");
             FILE *tacfile = fopen("RESULT.tac", "a");
@@ -244,20 +244,20 @@ int main(int argc, char **argv) {
             if (tacfile == NULL)
                 fprintf(stderr,
                         "Error occured trying to create or override file");
+            BB *bb = calloc(1,sizeof(BB));
+            bb->leader = seq;
             printTAC(tacfile, bb);
             // Free all fields of seq
             return 0;
         }
 
         // Default action is to run the compiler
-        if (interp == false && tac == false) {
+        if ((interp == false && tac == false) || mips) {
             // Make BB into one long TAC *
-            //TAC *seq;
-            //tac_generator(tree, &seq);
-            //mips_generator(seq);
+            TAC **seq = calloc(1,sizeof(TAC*));
+            tac_generator(tree,seq);
+            mips_generator(*seq);
             printf("\n");
-            // TODO: run mips code
-            // Free all fields of seq
             return 0;
         }
     } else {
